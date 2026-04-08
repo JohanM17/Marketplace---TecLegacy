@@ -25,7 +25,7 @@
 
                     <div class="mb-3">
                         <label for="id_username" class="form-label">Nombre de usuario</label>
-                        <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="id_username" required>
+                        <input type="text" name="username" class="form-control {% if form.username.errors %}is-invalid{% endif %}" id="id_username" autocomplete="username" required>
                         {% if form.username.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.username.errors %}
@@ -37,7 +37,7 @@
 
                     <div class="mb-3">
                         <label for="id_password" class="form-label">Contraseña</label>
-                        <input type="password" name="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" id="id_password" required>
+                        <input type="password" name="password" class="form-control {% if form.password.errors %}is-invalid{% endif %}" id="id_password" autocomplete="current-password" required>
                         {% if form.password.errors %}
                             <div class="invalid-feedback">
                                 {% for error in form.password.errors %}
@@ -48,7 +48,7 @@
                     </div>
 
                     <div class="mb-3 form-check">
-                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember" autocomplete="off">
                         <label class="form-check-label" for="remember">Recordarme</label>
                     </div>
 
