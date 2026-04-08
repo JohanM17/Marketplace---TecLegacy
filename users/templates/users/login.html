@@ -10,7 +10,7 @@
                 <h2 class="text-center">Iniciar Sesión</h2>
             </div>
             <div class="card-body">
-                <form method="POST" class="needs-validation" novalidate>
+                <form method="POST">
                     {% csrf_token %}
 
                     {% if form.non_field_errors %}
