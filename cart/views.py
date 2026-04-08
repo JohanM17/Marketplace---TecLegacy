@@ -45,7 +45,7 @@ def add_to_cart(request, product_id):
 
     # Si la petición es AJAX
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        quantity = int(request.GET.get('quantity', 1))
+        quantity = max(int(request.GET.get('quantity', 1)), 1)
 
         # Comprueba si el producto ya está en el carrito
         try:
@@ -65,7 +65,7 @@ def add_to_cart(request, product_id):
 
     # Si la petición no es AJAX
     else:
-        quantity = int(request.POST.get('quantity', 1))
+        quantity = max(int(request.POST.get('quantity', 1)), 1)
 
         # Comprueba si el producto ya está en el carrito
         try:

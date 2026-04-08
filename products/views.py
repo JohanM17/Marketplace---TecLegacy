@@ -80,3 +80,13 @@ def search_products(request):
         'query': query,
     }
     return render(request, 'products/search_results.html', context)
+
+
+def error_404(request, exception):
+    """Vista personalizada para error 404."""
+    return render(request, '404.html', status=404)
+
+
+def error_500(request):
+    """Vista personalizada para error 500."""
+    return render(request, '500.html', status=500)
