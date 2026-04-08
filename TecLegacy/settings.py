@@ -11,7 +11,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Seguridad y entorno
 SECRET_KEY = os.getenv("SECRET_KEY", "django-incecure-key-for-dev")
-DEBUG = "True"
+DEBUG = os.getenv("DEBUG", "True")=="True"
 SECURE_SSL_REDIRECT = False
 ALLOWED_HOSTS = ['*']
 

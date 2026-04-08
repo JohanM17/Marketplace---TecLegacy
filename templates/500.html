@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}500 - Error del servidor | TecLegacy{% endblock %}
+
+{% block content %}
+<div class="container text-center my-5 py-5">
+    <div class="error-container">
+        <h1 class="display-1 fw-bold text-danger">500</h1>
+        <h2 class="mb-4">¡GLITCH EN EL SISTEMA!</h2>
+        <p class="lead mb-5">Nuestros servidores han sufrido un lag crítico. Estamos trabajando para restaurar la partida.</p>
+        <div class="mb-5">
+            <i class="fas fa-tools fa-5x text-muted"></i>
+        </div>
+        <a href="{% url 'products:index' %}" class="btn btn-outline-primary btn-lg px-5">
+            <i class="fas fa-redo me-2"></i>Reintentar
+        </a>
+    </div>
+</div>
+{% endblock %}
