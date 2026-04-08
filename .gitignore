@@ -29,7 +29,6 @@ wheels/
 .venv/
 venv/
 ENV/
-env_django/
 
 # IDE files
 .idea/
@@ -48,4 +47,7 @@ db.sqlite3
 # Media/Static
 media/
 # static/  <-- Keep this if you want to track static assets, but usually collected static is ignored
-# staticfiles/
+# staticfile
+
+# Archivos de estudio
+README.md
