@@ -118,7 +118,7 @@ if not DEBUG:
 
 # Configuración de sesiones
 SESSION_COOKIE_AGE = 86400  # 24 horas
-SESSION_COOKIE_SECURE = False  # En producción, debe ser True
+SESSION_COOKIE_SECURE = False  # en despligue, debe ser True porque causa error con el https = red segura
 
 # Rutas de redirección para login/logout
 LOGIN_URL = 'users:login'  # Redirige aquí cuando se requiere login

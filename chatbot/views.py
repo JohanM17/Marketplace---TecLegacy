@@ -39,6 +39,7 @@ def chatbot_query(request):
                 'silla': 'Sillas Gaming',
             }
 
+
             # Patrones para extraer información de precio
             price_pattern = r'menos de (\d+)|bajo (\d+)|maximo (\d+)|hasta (\d+)'
             price_match = re.search(price_pattern, query)
@@ -122,7 +123,7 @@ def chatbot_query(request):
                 if products.count() == 5:
                     response += "<br>Estos son solo algunos resultados. ¿Quieres más detalles o buscar algo más específico?"
             else:
-                response = f"Lo siento, no encontré productos que coincidan con '{query}'. Prueba con otra busqueda o lo veo pues describiendo mejor lo que busca aaa."
+                response = f"Lo siento, no encontré productos que coincidan con '{query}'. Prueba con otra busqueda o escribiendo directamente la palabra como por ejemplo: silla, monitor, pc, tarjeta"
 
                 # Sugerir categorías disponibles
                 categories = Category.objects.filter(is_active=True)
@@ -149,4 +150,5 @@ def chatbot_query(request):
     return JsonResponse({
         'success': False,
         'error': 'Método no permitido'
-    })
+    }
+)
