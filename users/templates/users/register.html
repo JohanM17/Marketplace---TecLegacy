@@ -2,6 +2,36 @@
 
 {% block title %}Registro - TecLegacy{% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const password1 = document.getElementById('id_password1');
+        const password2 = document.getElementById('id_password2');
+
+        function validatePasswords() {
+            // Si el campo de confirmar está vacío, resetear estados
+            if (password2.value === '') {
+                password2.classList.remove('is-valid', 'is-invalid');
+                return;
+            }
+
+            // Comparar contraseñas
+            if (password1.value === password2.value) {
+                password2.classList.remove('is-invalid');
+                password2.classList.add('is-valid');
+            } else {
+                password2.classList.remove('is-valid');
+                password2.classList.add('is-invalid');
+            }
+        }
+
+        // Escuchar cada tecla presionada en ambos campos
+        password1.addEventListener('input', validatePasswords);
+        password2.addEventListener('input', validatePasswords);
+    });
+</script>
+{% endblock %}
+
 {% block content %}
 <div class="row justify-content-center">
     <div class="col-md-6">

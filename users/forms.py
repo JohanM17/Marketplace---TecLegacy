@@ -11,6 +11,13 @@ class UserRegisterForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+    def clean_email(self):
+        """Validar que el correo electrónico sea único."""
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError('Este correo electrónico ya está registrado. Por favor, utiliza uno diferente.')
+        return email
+
 
 class UserUpdateForm(forms.ModelForm):
     email = forms.EmailField()

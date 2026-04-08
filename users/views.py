@@ -2,8 +2,25 @@ from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
+from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
 from django.shortcuts import redirect
+
+
+class UserLoginView(LoginView):
+    """Vista de login personalizada para manejar la opción 'Recordarme'."""
+    template_name = 'users/login.html'
+
+    def form_valid(self, form):
+        # Si el checkbox 'remember' no está marcado, la sesión expira al cerrar el navegador
+        remember_me = self.request.POST.get('remember')
+        if not remember_me:
+            self.request.session.set_expiry(0)
+            self.request.session.modified = True
+        else:
+            # Si está marcado, la sesión dura 2 semanas (valor por defecto de Django)
+            self.request.session.set_expiry(None)
+        return super().form_valid(form)
 
 
 def register(request):
