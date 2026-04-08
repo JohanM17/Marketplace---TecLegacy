@@ -28,6 +28,7 @@ urlpatterns = [
     path('users/', include('users.urls')),
     path('cart/', include('cart.urls')),
     path('chatbot/', include('chatbot.urls')),
+    path('accounts/', include('allauth.urls')),  # Rutas sociales (Google)
 ]
 
 # Añadir estas líneas para servir archivos media durante desarrollo
