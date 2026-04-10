@@ -10,14 +10,17 @@
             <!-- Navegación principal -->
             <ul class="navbar-nav me-auto">
                 <li class="nav-item">
-                    <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{% url 'products:index' %}">Inicio</a>
+                    <a class="nav-link {% if request.path == '/' %}active{% endif %}"
+                        href="{% url 'products:index' %}">Inicio</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if '/products/' in request.path %}active{% endif %}" href="{% url 'products:product_list' %}">Productos</a>
+                    <a class="nav-link {% if '/products/' in request.path %}active{% endif %}"
+                        href="{% url 'products:product_list' %}">Productos</a>
                 </li>
                 <!-- Dropdown para categorías -->
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-bs-toggle="dropdown">
                         Categorías
                     </a>
                     <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
@@ -31,7 +34,8 @@
             <!-- Búsqueda -->
             <form class="d-flex my-2 my-lg-0 me-3" action="{% url 'products:search' %}" method="get">
                 <div class="input-group">
-                    <input class="form-control" type="search" name="q" placeholder="Buscar productos..." aria-label="Search">
+                    <input class="form-control" type="search" name="q" placeholder="Buscar productos..."
+                        aria-label="Search">
                     <button class="btn btn-primary" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
@@ -43,7 +47,8 @@
                 <!-- Botón del carrito -->
                 <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-light position-relative me-2">
                     <i class="fas fa-shopping-cart"></i>
-                    <span id="cart-items-count" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                    <span id="cart-items-count"
+                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
                         {{ cart_items_count|default:"0" }}
                     </span>
                 </a>
@@ -51,7 +56,8 @@
                 <!-- Menú de usuario -->
                 {% if user.is_authenticated %}
                 <div class="dropdown">
-                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown">
+                    <button class="btn btn-outline-light dropdown-toggle" type="button" id="userDropdown"
+                        data-bs-toggle="dropdown">
                         <i class="fas fa-user"></i> {{ user.username }}
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
@@ -60,7 +66,9 @@
                         {% if user.is_staff %}
                         <li><a class="dropdown-item" href="{% url 'admin:index' %}">Administración</a></li>
                         {% endif %}
-                        <li><hr class="dropdown-divider"></li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
                         <li><a class="dropdown-item" href="{% url 'users:logout' %}">Cerrar Sesión</a></li>
                     </ul>
                 </div>

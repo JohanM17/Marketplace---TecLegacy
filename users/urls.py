@@ -1,6 +1,7 @@
-from django.urls import path
+from django.urls import path, reverse_lazy
 from django.contrib.auth import views as auth_views
 from . import views
+from .forms import CustomSetPasswordForm
 
 app_name = 'users'
 
@@ -12,15 +13,23 @@ urlpatterns = [
     path('orders/', views.order_history, name='order_history'),
     # URLs para recuperación de contraseña
     path('password-reset/',
-         auth_views.PasswordResetView.as_view(template_name='users/password_reset.html'), #No hay aun esta para resetear
+         auth_views.PasswordResetView.as_view(
+             template_name='users/password_reset.html',
+             success_url=reverse_lazy('users:password_reset_done'),
+             email_template_name='users/password_reset_email.html'
+         ),
          name='password_reset'),
     path('password-reset/done/',
-         auth_views.PasswordResetDoneView.as_view(template_name='users/password_reset_done.html'),  #Tampoco
+         auth_views.PasswordResetDoneView.as_view(template_name='users/password_reset_done.html'),
          name='password_reset_done'),
     path('password-reset-confirm/<uidb64>/<token>/',
-         auth_views.PasswordResetConfirmView.as_view(template_name='users/password_reset_confirm.html'),   #Tampoco
+         auth_views.PasswordResetConfirmView.as_view(
+             template_name='users/password_reset_confirm.html',
+             success_url=reverse_lazy('users:password_reset_complete'),
+             form_class=CustomSetPasswordForm
+         ),
          name='password_reset_confirm'),
     path('password-reset-complete/',
-         auth_views.PasswordResetCompleteView.as_view(template_name='users/password_reset_complete.html'),   #Tampoco
+         auth_views.PasswordResetCompleteView.as_view(template_name='users/password_reset_complete.html'),
          name='password_reset_complete'),
 ]
