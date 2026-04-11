@@ -83,12 +83,24 @@ def add_to_cart(request, product_id):
         # Comprueba si el producto ya está en el carrito
         try:
             cart_item = CartItem.objects.get(cart=cart, product=product)
-            cart_item.quantity += quantity
+            new_quantity = cart_item.quantity + quantity
+            capped = new_quantity > product.stock
+            cart_item.quantity = min(new_quantity, product.stock)
             cart_item.save()
-            messages.success(request, f'La cantidad de {product.name} ha sido actualizada en tu carrito')
+            if capped:
+                messages.warning(request, f'Stock máximo alcanzado para {product.name}. Se ajustó a {product.stock} unidades disponibles.')
+            else:
+                messages.success(request, f'La cantidad de {product.name} ha sido actualizada en tu carrito')
         except CartItem.DoesNotExist:
-            cart_item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)
-            messages.success(request, f'{product.name} ha sido añadido a tu carrito')
+            capped = quantity > product.stock
+            cart_item = CartItem.objects.create(
+                cart=cart, product=product,
+                quantity=min(quantity, product.stock)
+            )
+            if capped:
+                messages.warning(request, f'Stock máximo alcanzado. Se añadieron {product.stock} unidades de {product.name}.')
+            else:
+                messages.success(request, f'{product.name} ha sido añadido a tu carrito')
 
         return redirect('cart:cart_detail')
 
