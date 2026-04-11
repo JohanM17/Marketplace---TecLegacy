@@ -50,15 +50,28 @@ def add_to_cart(request, product_id):
         # Comprueba si el producto ya está en el carrito
         try:
             cart_item = CartItem.objects.get(cart=cart, product=product)
-            cart_item.quantity += quantity
+            new_quantity = cart_item.quantity + quantity
+            # Tope de seguridad: nunca superar el stock disponible
+            capped = new_quantity > product.stock
+            cart_item.quantity = min(new_quantity, product.stock)
             cart_item.save()
         except CartItem.DoesNotExist:
-            cart_item = CartItem.objects.create(cart=cart, product=product, quantity=quantity)
+            capped = quantity > product.stock
+            cart_item = CartItem.objects.create(
+                cart=cart, product=product,
+                quantity=min(quantity, product.stock)
+            )
+
+        message = f'{product.name} añadido al carrito'
+        if capped:
+            message = f'Stock máximo alcanzado para {product.name} ({product.stock} disponibles)'
 
         # Devuelve respuesta JSON con información actualizada del carrito
         return JsonResponse({
             'success': True,
-            'message': f'{product.name} añadido al carrito',
+            'capped': capped,
+            'message': message,
+            'cart_quantity': cart_item.quantity,
             'cart_items_count': cart.get_total_items(),
             'cart_total': str(cart.get_total_price())
         })
@@ -90,7 +103,14 @@ def update_cart(request):
         cart_item = get_object_or_404(CartItem, id=item_id)
 
         if action == 'increase':
-            cart_item.quantity += 1
+            # Validar stock antes de aumentar
+            if cart_item.quantity < cart_item.product.stock:
+                cart_item.quantity += 1
+            else:
+                return JsonResponse({
+                    'success': False,
+                    'error': 'Stock máximo alcanzado'
+                })
         elif action == 'decrease':
             if cart_item.quantity > 1:
                 cart_item.quantity -= 1

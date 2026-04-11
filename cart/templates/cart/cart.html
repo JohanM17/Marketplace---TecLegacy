@@ -18,7 +18,7 @@
             <div class="card-body">
                 <div id="cart-items">
                     {% for item in cart_items %}
-                    <div id="cart-item-{{ item.id }}" class="cart-item mb-3">
+                    <div id="cart-item-{{ item.id }}" class="cart-item mb-3" data-stock="{{ item.product.stock }}">
                         <div class="row align-items-start">
                             <div class="col-md-2">
                                 <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded">
@@ -30,11 +30,17 @@
                             <div class="col-md-4 text-end">
                                 <!-- Controles de cantidad -->
                                 <div class="input-group justify-content-end mb-4">
-                                    <button type="button" class="btn btn-outline-secondary cart-item-control px-3 py-2" data-item-id="{{ item.id }}" data-action="decrease">
+                                    <button type="button" class="btn btn-outline-secondary cart-item-control" 
+                                            id="btn-decrease-{{ item.id }}"
+                                            data-item-id="{{ item.id }}" data-action="decrease"
+                                            {% if item.quantity <= 1 %}disabled{% endif %}>
                                         <i class="fas fa-minus fa-lg"></i>
                                     </button>
                                     <span id="item-quantity-{{ item.id }}" class="form-control text-center fs-5" style="max-width: 70px;">{{ item.quantity }}</span>
-                                    <button type="button" class="btn btn-outline-secondary cart-item-control px-3 py-2" data-item-id="{{ item.id }}" data-action="increase">
+                                    <button type="button" class="btn btn-outline-secondary cart-item-control" 
+                                            id="btn-increase-{{ item.id }}"
+                                            data-item-id="{{ item.id }}" data-action="increase"
+                                            {% if item.quantity >= item.product.stock %}disabled{% endif %}>
                                         <i class="fas fa-plus fa-lg"></i>
                                     </button>
                                 </div>
