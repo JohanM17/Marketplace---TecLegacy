@@ -1,7 +1,8 @@
 from django.shortcuts import render, get_object_or_404
 from django.core.paginator import Paginator
-from .models import Category, Product
+from django.http import JsonResponse
 from django.db import models
+from .models import Category, Product
 
 def index(request):
     """Vista de la página principal con productos destacados."""
@@ -80,6 +81,30 @@ def search_products(request):
         'query': query,
     }
     return render(request, 'products/search_results.html', context)
+
+
+def search_autocomplete(request):
+    """API para autocompletado en vivo del buscador."""
+    query = request.GET.get('q', '').strip()
+    if len(query) < 2:
+        return JsonResponse({'results': []})
+        
+    products = Product.objects.filter(is_available=True).filter(
+        models.Q(name__icontains=query) |
+        models.Q(description__icontains=query) |
+        models.Q(category__name__icontains=query)
+    ).distinct()[:5]  # Limitamos a 5 resultados rápidos
+    
+    results = []
+    for p in products:
+        results.append({
+            'name': p.name,
+            'price': float(p.price),
+            'url': f"/products/{p.category.slug}/{p.slug}/",
+            'image_url': p.image.url if p.image else ''
+        })
+        
+    return JsonResponse({'results': results})
 
 
 def error_404(request, exception):
