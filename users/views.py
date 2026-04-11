@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
-from django.shortcuts import redirect
+from cart.models import Cart
 
 
 class UserLoginView(LoginView):
@@ -68,5 +68,8 @@ def order_history(request):
     return render(request, 'users/order_history.html', {'orders': orders})
 
 def logout_view(request):
+    # Vaciar el carrito de la cuenta antes de cerrar sesión
+    if request.user.is_authenticated:
+        Cart.objects.filter(user=request.user).delete()
     logout(request)
     return redirect('products:index')

@@ -21,6 +21,8 @@ def _get_or_create_cart(request):
             request.session.create()
 
         session_id = request.session.session_key
+        # Guardar el ID en los datos de sesión — sobrevive la rotación de clave al hacer login
+        request.session['_cart_session_id'] = session_id
         cart, created = Cart.objects.get_or_create(session_id=session_id)
 
     return cart
