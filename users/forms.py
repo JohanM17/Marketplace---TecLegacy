@@ -37,9 +37,35 @@ class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
         fields = ['username', 'email', 'first_name', 'last_name']
+        labels = {
+            'username': 'Nombre de usuario',
+            'first_name': 'Nombres',
+            'last_name': 'Apellidos',
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['first_name'].required = True
+        self.fields['last_name'].required = True
 
 
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = Profile
-        fields = ['phone', 'address', 'city', 'country', 'postal_code', 'profile_image']
+        fields = ['phone', 'address', 'city', 'country', 'postal_code']
+        labels = {
+            'phone': 'Teléfono Celular',
+            'address': 'Dirección Exacta',
+            'city': 'Ciudad',
+            'country': 'País',
+            'postal_code': 'Código Postal',
+        }
+        widgets = {
+            'address': forms.Textarea(attrs={'rows': 2}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Hacer que todos los campos del perfil sean obligatorios para el e-commerce
+        for field in self.fields:
+            self.fields[field].required = True
