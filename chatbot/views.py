@@ -1,154 +1,82 @@
+import json
+import os
+import google.generativeai as genai
 from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
 from products.models import Product, Category
 from .models import ChatbotQuery
-import json
-import re
-from django.db import models
 
-@csrf_exempt
+# --- CAPA DE ABSTRACCIÓN (IA) ---
+def get_ai_response(user_query, catalog_context):
+    """
+    Función modular para obtener respuestas de la IA.
+    Diseñada para ser escalable: si quieres cambiar de IA en el futuro,
+    solo tienes que modificar este bloque.
+    """
+    try:
+        # Cargar API Key desde el entorno
+        api_key = os.getenv("GEMINI_API_KEY")
+        if not api_key:
+            return "Error de configuración: GEMINI_API_KEY no encontrada."
+
+        # Configurar y llamar al modelo
+        genai.configure(api_key=api_key)
+        model = genai.GenerativeModel('gemini-flash-latest')
+
+        # Instrucciones de comportamiento para la IA
+        system_instruction = f"""
+        Eres 'TecBot', el asistente virtual experto de 'TecLegacy'. 
+        Tu personalidad es amable, profesional y gamer.
+        
+        CATÁLOGO ACTUAL DE PRODUCTOS (Usa esto como única referencia):
+        {catalog_context}
+        
+        REGLAS:
+        - Responde de forma amable y concisa.
+        - Evita saludar y presentarte repetitivamente en cada respuesta. Ve directo al grano manteniendo el tono amable.
+        - NUNCA uses Markdown (como ** para negritas). Usa SÓLO etiquetas HTML si necesitas resaltar algo (ejemplo: <b>texto</b>).
+        - Solo recomienda productos que existan en el catálogo de arriba.
+        - Cuando menciones un producto, crea un enlace HTML usando este formato: <a href="/products/SLUG_CATEGORIA/SLUG_PRODUCTO/">NOMBRE_PRODUCTO</a>.
+        - Si el usuario pregunta por algo que no tenemos, sugiere ver las categorías generales.
+        """
+
+        # Enviar el contexto y la duda del usuario
+        response = model.generate_content(f"{system_instruction}\n\nCliente: {user_query}")
+        return response.text
+
+    except Exception as e:
+        # Detectar si es un error de cuota (Rate Limit / Quota Exceeded)
+        error_msg = str(e).lower()
+        if "429" in error_msg or "quota" in error_msg or "exhausted" in error_msg:
+            return "Lo siento, he superado mi límite de consultas gratuitas por este momento. Por favor, inténtalo de nuevo en unos minutos."
+        
+        return f"Interferencia en el sistema: {str(e)}"
+
+
+# --- VISTA PRINCIPAL (Django) ---
 def chatbot_query(request):
-    """API para procesar consultas del chatbot."""
+    """Punto de entrada de la API del Chatbot."""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
-            query = data.get('query', '').lower()
+            query = data.get('query', '')
 
-            # Guardar la consulta en la base de datos
-            chat_query = ChatbotQuery(query=query)
+            # 1. Extraer catálogo real de la DB (Datos vivos con Slugs para links)
+            products = Product.objects.filter(is_available=True)
+            catalog_summary = ""
+            for p in products:
+                catalog_summary += f"- {p.name}: ${p.price} | Cat: {p.category.name} | URL: /products/{p.category.slug}/{p.slug}/\n"
 
-            # Palabras clave para buscar por categoría
-            category_keywords = {
-                'portatil': 'Portátiles Gaming',
-                'laptop': 'Portátiles Gaming',
-                'notebook': 'Portátiles Gaming',
-                'gaming': None,# Buscar en todas las categorías con "gaming"
-                'juego': None,
-                'teclado': 'Periféricos',
-                'mouse': 'Periféricos',
-                'raton': 'Periféricos',
-                'auricular': 'Periféricos',
-                'cascos': 'Periféricos',
-                'tarjeta': 'Componentes',
-                'grafica': 'Componentes',
-                'procesador': 'Componentes',
-                'cpu': 'Componentes',
-                'placa': 'Componentes',
-                'monitor': 'Monitores',
-                'pantalla': 'Monitores',
-                'silla': 'Sillas Gaming',
-            }
+            # 2. Obtener respuesta inteligente
+            bot_response = get_ai_response(query, catalog_summary)
 
-
-            # Patrones para extraer información de precio
-            price_pattern = r'menos de (\d+)|bajo (\d+)|maximo (\d+)|hasta (\d+)'
-            price_match = re.search(price_pattern, query)
-            max_price = None
-
-            if price_match:
-                # Encontrar el primer grupo que no sea None
-                for group in price_match.groups():
-                    if group is not None:
-                        max_price = int(group) * 1000
-                        break
-
-            # Iniciar búsqueda de productos
-            products_query = Product.objects.filter(is_available=True)
-
-            # Respuestas especiales para saludos o preguntas generales
-            greetings = ['hola', 'hey', 'saludos', 'buenos días', 'buenas tardes', 'buenas noches']
-            help_keywords = ['ayuda', 'ayudame', 'como funciona', 'que haces']
-
-            if any(greeting in query for greeting in greetings):
-                response = "¡Hola! Soy el asistente de TecLegacy. Puedo ayudarte a encontrar productos gaming y tecnología. ¿Qué estás buscando hoy?"
-                chat_query.response = response
-                chat_query.save()
-                return JsonResponse({
-                    'success': True,
-                    'response': response
-                })
-
-            if any(keyword in query for keyword in help_keywords):
-                response = "Puedo ayudarte a encontrar productos en nuestra tienda. Prueba preguntándome por productos específicos como 'muéstrame teclados gaming' o 'busco un monitor de 27 pulgadas'. También puedes indicarme un rango de precio como 'monitores por menos de 500'."
-                chat_query.response = response
-                chat_query.save()
-                return JsonResponse({
-                    'success': True,
-                    'response': response
-                })
-
-            # Filtrar por categoría si se detecta una palabra clave
-            category_filter_applied = False
-            for keyword, category_name in category_keywords.items():
-                if keyword in query:
-                    if category_name:  # Si hay una categoría específica
-                        try:
-                            category = Category.objects.get(name=category_name)
-                            products_query = products_query.filter(category=category)
-                            category_filter_applied = True
-                        except Category.DoesNotExist:
-                            pass
-                    else:  # Para palabras como "gaming" que pueden estar en varias categorías
-                        products_query = products_query.filter(name__icontains=keyword)
-                        category_filter_applied = True
-
-            # Si no se aplicó filtro por categoría, buscar por nombre
-            if not category_filter_applied:
-                # Extraer palabras clave potenciales (palabras de 3+ caracteres)
-                keywords = [word for word in query.split() if len(word) >= 3]
-                for keyword in keywords:
-                    products_query = products_query.filter(
-                        models.Q(name__icontains=keyword) |
-                        models.Q(description__icontains=keyword)
-                    )
-
-            # Filtrar por precio máximo si se especificó
-            if max_price:
-                products_query = products_query.filter(price__lte=max_price)
-
-            # Limitar a 5 productos como máximo
-            products = products_query[:5]
-
-            # Crear respuesta basada en los resultados
-            if products.exists():
-                if max_price:
-                    response = f"He encontrado estos productos tacaño, por menos de ${max_price / 1000}k:<br>"
-                else:
-                    response = "He encontrado estos productos para que compre si o si:<br>"
-
-                for product in products:
-                    price_formatted = '{:,.0f}'.format(product.price).replace(',', '.')
-                    response += f"- <a href='/products/{product.category.slug}/{product.slug}/'>{product.name}</a> - ${price_formatted}<br>"
-
-                if products.count() == 5:
-                    response += "<br>Estos son solo algunos resultados. ¿Quieres más detalles o buscar algo más específico?"
-            else:
-                response = f"Lo siento, no encontré productos que coincidan con '{query}'. Prueba con otra busqueda o escribiendo directamente la palabra como por ejemplo: silla, monitor, pc, tarjeta"
-
-                # Sugerir categorías disponibles
-                categories = Category.objects.filter(is_active=True)
-                if categories.exists():
-                    response += "<br><br>Puedes explorar nuestras categorías:<br>"
-                    for category in categories:
-                        response += f"- <a href='/products/{category.slug}/'>{category.name}</a><br>"
-
-            # Guardar la respuesta y devolver
-            chat_query.response = response
-            chat_query.save()
+            # 3. Guardar en el historial
+            ChatbotQuery.objects.create(query=query, response=bot_response)
 
             return JsonResponse({
                 'success': True,
-                'response': response
+                'response': bot_response
             })
-
         except Exception as e:
-            return JsonResponse({
-                'success': False,
-                'error': str(e)
-            })
+            return JsonResponse({'success': False, 'error': str(e)})
 
-    return JsonResponse({
-        'success': False,
-        'error': 'Método no permitido'
-    }
-)
+    return JsonResponse({'success': False, 'error': 'Método no permitido'})
