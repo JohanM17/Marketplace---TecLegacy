@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block title %}Resultados de búsqueda: {{ query }} - TecLegacy{% endblock %}
 
@@ -25,7 +26,7 @@
                     <h5 class="card-title">{{ product.name }}</h5>
                     <p class="card-text text-truncate">{{ product.description|truncatechars:60 }}</p>
                     <div class="d-flex justify-content-between align-items-center">
-                        <strong class="price">${{ product.price }}</strong>
+                        <strong class="price">{{ product.price|cop_format }}</strong>
                         <button class="btn btn-primary btn-sm add-to-cart-btn" data-product-id="{{ product.id }}">
                             <i class="fas fa-cart-plus"></i>
                         </button>

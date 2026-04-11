@@ -1,5 +1,30 @@
 document.addEventListener('DOMContentLoaded', function() {
-    // Función para añadir productos al carrito vía AJAX
+
+    // Función helper para formatear precios en COP
+    const formatCOP = (value) => {
+        const num = parseInt(parseFloat(value));
+        return `$ ${new Intl.NumberFormat('es-CO').format(num)} COP`;
+    };
+
+    // Función para actualizar el estado de los botones +/- según cantidad y stock
+    const updateButtonStates = (itemId, quantity, stock) => {
+        const decreaseBtn = document.getElementById(`btn-decrease-${itemId}`);
+        const increaseBtn = document.getElementById(`btn-increase-${itemId}`);
+        if (decreaseBtn) decreaseBtn.disabled = (quantity <= 1);
+        if (increaseBtn) increaseBtn.disabled = (quantity >= stock);
+    };
+
+    // Al cargar, inicializar estado de botones de cada ítem
+    document.querySelectorAll('.cart-item').forEach(item => {
+        const itemId = item.id.replace('cart-item-', '');
+        const stock = parseInt(item.dataset.stock);
+        const quantityEl = document.getElementById(`item-quantity-${itemId}`);
+        if (quantityEl) {
+            updateButtonStates(itemId, parseInt(quantityEl.textContent), stock);
+        }
+    });
+
+
     const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
 
     addToCartButtons.forEach(button => {
@@ -23,13 +48,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     // Actualizar contador del carrito
                     document.getElementById('cart-items-count').textContent = data.cart_items_count;
 
+                    // Color del toast según si se llegó al tope
+                    const toastColor = data.capped
+                        ? "linear-gradient(to right, #e67e22, #e74c3c)"
+                        : "linear-gradient(to right, #0063e6, #e60048)";
+
                     // Mostrar notificación
                     Toastify({
                         text: data.message,
-                        duration: 3000,
+                        duration: 3500,
                         gravity: "top",
                         position: "right",
-                        backgroundColor: "linear-gradient(to right, #0063e6, #e60048)",
+                        backgroundColor: toastColor,
                         stopOnFocus: true,
                     }).showToast();
                 }
@@ -72,12 +102,20 @@ document.addEventListener('DOMContentLoaded', function() {
                         }
                     } else {
                         // Actualizar cantidad y total del item
-                        document.getElementById(`item-quantity-${itemId}`).textContent = data.quantity;
-                        document.getElementById(`item-total-${itemId}`).textContent = data.item_total;
+                        const newQty = parseInt(data.quantity);
+                        document.getElementById(`item-quantity-${itemId}`).textContent = newQty;
+                        document.getElementById(`item-total-${itemId}`).textContent = formatCOP(data.item_total);
+
+                        // Actualizar botones según nueva cantidad y stock del producto
+                        const cartItemEl = document.getElementById(`cart-item-${itemId}`);
+                        const stock = parseInt(cartItemEl.dataset.stock);
+                        updateButtonStates(itemId, newQty, stock);
                     }
 
                     // Actualizar el total del carrito
-                    document.getElementById('cart-total').textContent = data.cart_total;
+                    document.getElementById('cart-total').textContent = formatCOP(data.cart_total);
+                    const cartFinalTotal = document.getElementById('cart-final-total');
+                    if(cartFinalTotal) cartFinalTotal.textContent = formatCOP(data.cart_total);
 
                     // Si el carrito está vacío después de eliminar todo
                     if (data.cart_items_count === 0) {
