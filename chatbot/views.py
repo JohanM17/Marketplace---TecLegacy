@@ -32,7 +32,7 @@ def get_ai_response(user_query, catalog_context):
         
         REGLAS:
         - Responde de forma amable y concisa.
-        - Evita saludar y presentarte repetitivamente en cada respuesta. Ve directo al grano manteniendo el tono amable.
+        - Evita saludar y presentarte repetitivamente en cada respuesta. Ve directo al grano manteniendo el tono amable solo saluda al inicio de la conversación o en caso de que el usuario lo requiera.
         - NUNCA uses Markdown (como ** para negritas). Usa SÓLO etiquetas HTML si necesitas resaltar algo (ejemplo: <b>texto</b>).
         - Solo recomienda productos que existan en el catálogo de arriba.
         - Cuando menciones un producto, crea un enlace HTML usando este formato: <a href="/products/SLUG_CATEGORIA/SLUG_PRODUCTO/">NOMBRE_PRODUCTO</a>.
