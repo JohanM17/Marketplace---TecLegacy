@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block title %}Checkout - TecLegacy{% endblock %}
 
@@ -176,7 +177,7 @@
                     {% endfor %}
                     <li class="list-group-item d-flex justify-content-between">
                         <span>Total</span>
-                        <strong>${{ cart.get_total_price }}</strong>
+                        <strong>{{ cart.get_total_price|cop_format }}</strong>
                     </li>
                 </ul>
             </div>

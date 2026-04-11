@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
+
+    // Función helper para formatear precios en COP
+    const formatCOP = (value) => {
+        const num = parseInt(parseFloat(value));
+        return `$ ${new Intl.NumberFormat('es-CO').format(num)} COP`;
+    };
     // Función para añadir productos al carrito vía AJAX
     const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
 
@@ -73,11 +79,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     } else {
                         // Actualizar cantidad y total del item
                         document.getElementById(`item-quantity-${itemId}`).textContent = data.quantity;
-                        document.getElementById(`item-total-${itemId}`).textContent = data.item_total;
+                        document.getElementById(`item-total-${itemId}`).textContent = formatCOP(data.item_total);
                     }
 
                     // Actualizar el total del carrito
-                    document.getElementById('cart-total').textContent = data.cart_total;
+                    document.getElementById('cart-total').textContent = formatCOP(data.cart_total);
+                    const cartFinalTotal = document.getElementById('cart-final-total');
+                    if(cartFinalTotal) cartFinalTotal.textContent = formatCOP(data.cart_total);
 
                     // Si el carrito está vacío después de eliminar todo
                     if (data.cart_items_count === 0) {

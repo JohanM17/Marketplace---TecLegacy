@@ -127,7 +127,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                 ${imgHtml}
                                 <div>
                                     <div style="font-size: 0.9rem;">${item.name}</div>
-                                    <div class="text-primary fw-bold" style="font-size: 0.8rem;">$${item.price}</div>
+                                    <div class="text-primary fw-bold" style="font-size: 0.8rem;">$ ${new Intl.NumberFormat('es-CO').format(item.price)} COP</div>
                                 </div>
                             `;
                             searchDropdown.appendChild(resultItem);
