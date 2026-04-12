@@ -5,6 +5,7 @@ from django.http import JsonResponse
 from django.urls import reverse
 from products.models import Product
 from .models import Cart, CartItem, Order, OrderItem
+from payments.factory import get_payment_provider
 import json
 import uuid
 
@@ -203,11 +204,8 @@ def checkout(request):
                 quantity=item.quantity
             )
 
-        # Vaciar el carrito
-        cart.items.all().delete()
-
-        messages.success(request, '¡Tu pedido ha sido creado correctamente!')
-        return redirect('cart:payment_process', order_id=order.id)
+        # No vaciamos el carrito aquí todavía, lo haremos en payment_success
+        return redirect('cart:payment_initiate', order_id=order.id)
 
     # Prepopular campos con información del perfil si existe
     initial_data = {}
@@ -232,24 +230,24 @@ def checkout(request):
 
 
 @login_required
-def payment_process(request, order_id):
-    """Vista para procesar el pago de una orden."""
+def payment_initiate(request, order_id):
+    """Vista para iniciar el proceso de pago con el proveedor configurado."""
     order = get_object_or_404(Order, id=order_id, user=request.user)
-
-    # Si el pago ya está completo, redirigir a la página de éxito
-    if order.payment_status == 'completado':
-        return redirect('cart:payment_success', order_id=order.id)
-
-    payment_method = order.payment_method
-
-    context = {
-        'order': order,
-        'payment_method': payment_method,
-        'client_id': 'PAYPAL_CLIENT_ID',  # En producción, esto vendría de las variables de entorno
-    }
-
-    # Usar el nombre correcto de la plantilla
-    return render(request, 'cart/payment_process.html', context)
+    
+    # Obtener el proveedor desde el factory
+    provider = get_payment_provider()
+    
+    # URLs de retorno
+    success_url = request.build_absolute_uri(reverse('cart:payment_success', args=[order.id]))
+    cancel_url = request.build_absolute_uri(reverse('cart:payment_cancel', args=[order.id]))
+    
+    try:
+        # Esto genera la URL de Stripe (o el proveedor que sea)
+        checkout_url = provider.create_checkout_session(order, success_url, cancel_url)
+        return redirect(checkout_url)
+    except Exception as e:
+        messages.error(request, f"Error al iniciar el pago: {str(e)}")
+        return redirect('cart:checkout')
 
 
 @login_required
@@ -282,11 +280,38 @@ def payment_success(request, order_id):
     """Vista de éxito después del pago."""
     order = get_object_or_404(Order, id=order_id, user=request.user)
 
+    # Para el demo, si llegamos aquí, asumimos que el pago fue exitoso
+    if order.payment_status != 'completado':
+        order.payment_status = 'completado'
+        order.status = 'procesando'
+        if not order.payment_reference:
+            order.payment_reference = f"STRIPE-{uuid.uuid4().hex[:12].upper()}"
+        order.save()
+        
+        # 1. ACTUALIZAR STOCK: Descontar productos del inventario
+        for item in order.items.all():
+            product = item.product
+            if product.stock >= item.quantity:
+                product.stock -= item.quantity
+                product.save()
+            else:
+                # Caso borde: Se quedó sin stock en el proceso (se podría manejar un aviso)
+                product.stock = 0
+                product.save()
+
+        # 2. LIMPIEZA: Vaciar el carrito solo cuando el pago es exitoso
+        cart = _get_or_create_cart(request)
+        cart.items.all().delete()
+        
+        # 3. NOTIFICACIÓN: Mensaje de éxito final y correo
+        from .utils import send_order_confirmation_email
+        send_order_confirmation_email(order)
+        
+        messages.success(request, f'¡Gracias por tu compra! El pedido #{order.id} ha sido confirmado.')
+
     context = {
         'order': order,
     }
-
-    # Usar el nombre correcto de la plantilla
     return render(request, 'cart/payment_success.html', context)
 
 

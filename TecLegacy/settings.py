@@ -162,6 +162,9 @@ LOGOUT_REDIRECT_URL = '/'   # Redirige aquí después de logout
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Configuración de correo: Consola en Desarrollo / SMTP en Producción
+# Pasarela de Pagos
+PAYMENT_PROVIDER = 'stripe'
+
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:

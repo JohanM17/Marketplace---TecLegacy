@@ -94,92 +94,90 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> <!-- Cierre correcto de la tarjeta de envío -->
 
-            <div class="card mb-4">
+            <div class="card mb-4 shadow-sm">
                 <div class="card-header">
-                    <h5 class="mb-0">Método de Pago</h5>
+                    <h5 class="mb-0 text-white">Método de Pago</h5>
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-12">
-                            <div class="form-check">
+                            <div class="form-check mb-2">
                                 <input id="credit" name="payment_method" type="radio" class="form-check-input" value="credit_card" checked required>
-                                <label class="form-check-label" for="credit">Tarjeta de Crédito</label>
-                            </div>
-                            <div class="form-check">
-                                <input id="debit" name="payment_method" type="radio" class="form-check-input" value="debit_card" required>
-                                <label class="form-check-label" for="debit">Tarjeta de Débito</label>
+                                <label class="form-check-label" for="credit">
+                                    <i class="fas fa-credit-card me-2"></i>Tarjeta de Crédito / Débito
+                                </label>
                             </div>
                             <div class="form-check">
                                 <input id="paypal" name="payment_method" type="radio" class="form-check-input" value="paypal" required>
-                                <label class="form-check-label" for="paypal">PayPal</label>
+                                <label class="form-check-label" for="paypal">
+                                    <i class="fab fa-paypal me-2"></i>PayPal
+                                </label>
                             </div>
                         </div>
 
-                        <div id="credit_card_fields" class="col-12">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label for="cc_name" class="form-label">Nombre en la tarjeta</label>
-                                    <input type="text" class="form-control" id="cc_name" placeholder="">
-                                    <small class="text-muted">Nombre completo como aparece en la tarjeta</small>
-                                </div>
-                                <div class="col-md-6">
-                                    <label for="cc_number" class="form-label">Número de la tarjeta</label>
-                                    <input type="text" class="form-control" id="cc_number" placeholder="XXXX XXXX XXXX XXXX">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="cc_expiration" class="form-label">Vencimiento</label>
-                                    <input type="text" class="form-control" id="cc_expiration" placeholder="MM/AA">
-                                </div>
-                                <div class="col-md-4">
-                                    <label for="cc_cvv" class="form-label">CVV</label>
-                                    <input type="text" class="form-control" id="cc_cvv" placeholder="XXX">
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="col-12">
+                        <div class="col-12 mt-3">
                             <p class="text-muted small">
-                                <i class="fas fa-lock me-1"></i> Todos tus datos están protegidos y encriptados. Esta es una demo de pago simulado.
+                                <i class="fas fa-lock me-1"></i> Al hacer clic en "Finalizar Compra", serás redirigido a una pasarela de pago segura. No almacenamos tus datos bancarios.
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="d-flex justify-content-between">
+            <div class="d-flex justify-content-between mb-5">
                 <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-primary">
                     <i class="fas fa-arrow-left me-2"></i>Volver al Carrito
                 </a>
-                <button class="btn btn-primary btn-lg" type="submit">
-                    <i class="fas fa-credit-card me-2"></i>Finalizar Compra
+                <button id="btn-submit-order" class="btn btn-primary btn-lg px-4" type="submit" disabled>
+                    <i class="fas fa-check-circle me-2"></i>Finalizar Compra
                 </button>
             </div>
         </form>
     </div>
 
     <div class="col-md-4">
-        <div class="card mb-4">
-            <div class="card-header">
-                <h5 class="mb-0">Resumen del Pedido</h5>
-            </div>
-            <div class="card-body">
-                <ul class="list-group list-group-flush mb-3">
-                    {% for item in cart.items.all %}
-                    <li class="list-group-item d-flex justify-content-between lh-sm">
-                        <div>
-                            <h6 class="my-0">{{ item.product.name }} × {{ item.quantity }}</h6>
-                            <small class="text-muted">{{ item.product.description|truncatechars:50 }}</small>
+        <div class="sticky-top" style="top: 2rem;">
+            <div class="card shadow-sm border-0 bg-dark text-white">
+                <div class="card-header border-bottom border-secondary py-3">
+                    <h5 class="mb-0 text-uppercase fw-bold" style="letter-spacing: 1px;">Resumen del Pedido</h5>
+                </div>
+                <div class="card-body p-0">
+                    <ul class="list-group list-group-flush">
+                        {% for item in cart.items.all %}
+                        <li class="list-group-item bg-transparent border-secondary py-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div style="max-width: 70%;">
+                                    <h6 class="mb-1 text-light fw-semibold">{{ item.product.name }}</h6>
+                                    <span class="badge bg-secondary rounded-pill">Cant: {{ item.quantity }}</span>
+                                </div>
+                                <span class="text-info fw-bold">{{ item.get_cost|cop_format }}</span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    <div class="p-4 bg-secondary bg-opacity-10 border-top border-secondary mt-2">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-light text-uppercase fw-bold">Total a pagar</span>
+                            <span class="text-white fs-4 fw-black py-2 px-3 rounded" style="background: rgba(255,255,255,0.05); min-width: 180px; text-align: right;">
+                                {{ cart.get_total_price|cop_format }}
+                            </span>
                         </div>
-                        <span class="text-muted">${{ item.get_cost }}</span>
-                    </li>
-                    {% endfor %}
-                    <li class="list-group-item d-flex justify-content-between">
-                        <span>Total</span>
-                        <strong>{{ cart.get_total_price|cop_format }}</strong>
-                    </li>
-                </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-4 p-4 border border-secondary rounded-3 bg-dark shadow-sm">
+                <div class="d-flex align-items-center">
+                    <div class="bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                        <i class="fas fa-truck-fast fa-lg text-primary"></i>
+                    </div>
+                    <div>
+                        <p class="mb-0 fw-bold text-white">Envío Gratis Garantizado</p>
+                        <p class="mb-0 text-muted small">Disponible para todos los pedidos hoy.</p>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -189,19 +187,56 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Mostrar/ocultar campos de tarjeta según el método de pago seleccionado
-        const paymentMethods = document.querySelectorAll('input[name="payment_method"]');
-        const creditCardFields = document.getElementById('credit_card_fields');
+        const form = document.querySelector('.needs-validation');
+        const submitBtn = document.getElementById('btn-submit-order');
+        const inputs = form.querySelectorAll('input[required], select[required]');
 
-        paymentMethods.forEach(method => {
-            method.addEventListener('change', function() {
-                if (this.value === 'credit_card' || this.value === 'debit_card') {
-                    creditCardFields.classList.remove('d-none');
-                } else {
-                    creditCardFields.classList.add('d-none');
+        function validateForm() {
+            let allFilled = true;
+            inputs.forEach(input => {
+                if (input.type === 'radio') {
+                    // Para radios, verificamos si alguno del grupo está marcado
+                    const name = input.getAttribute('name');
+                    if (!form.querySelector(`input[name="${name}"]:checked`)) {
+                        allFilled = false;
+                    }
+                } else if (!input.value.trim()) {
+                    allFilled = false;
                 }
             });
+            
+            // Verificamos la validez de HTML5 (email válido, etc.)
+            const isFormValid = form.checkValidity();
+            
+            submitBtn.disabled = !(allFilled && isFormValid);
+            
+            // Efecto visual opcional
+            if (!submitBtn.disabled) {
+                submitBtn.classList.remove('btn-secondary');
+                submitBtn.classList.add('btn-primary');
+            } else {
+                submitBtn.classList.add('btn-secondary');
+                submitBtn.classList.remove('btn-primary');
+            }
+        }
+
+        // Escuchar cambios en todos los inputs
+        inputs.forEach(input => {
+            input.addEventListener('input', validateForm);
+            input.addEventListener('change', validateForm);
         });
+
+        // Validación inicial
+        validateForm();
+
+        // Bootrap Validation UI
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
     });
 </script>
 {% endblock %}
