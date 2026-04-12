@@ -45,8 +45,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Actualizar contador del carrito
-                    document.getElementById('cart-items-count').textContent = data.cart_items_count;
+                    // Actualizar contador del carrito (Navbar y Título de página)
+                    const navbarCount = document.getElementById('cart-items-count');
+                    const pageCount = document.getElementById('cart-page-count');
+                    if (navbarCount) navbarCount.textContent = data.cart_items_count;
+                    if (pageCount) pageCount.textContent = data.cart_items_count;
 
                     // Color del toast según si se llegó al tope
                     const toastColor = data.capped
@@ -59,6 +62,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         duration: 3500,
                         gravity: "top",
                         position: "right",
+                        offset: {
+                            x: 20, // horizontal axis
+                            y: 80  // vertical axis (debajo del navbar)
+                        },
                         backgroundColor: toastColor,
                         stopOnFocus: true,
                     }).showToast();
@@ -91,8 +98,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Actualizar contador del carrito
-                    document.getElementById('cart-items-count').textContent = data.cart_items_count;
+                    // Actualizar contador del carrito (Navbar y Título de página)
+                    const navbarCount = document.getElementById('cart-items-count');
+                    const pageCount = document.getElementById('cart-page-count');
+                    if (navbarCount) navbarCount.textContent = data.cart_items_count;
+                    if (pageCount) pageCount.textContent = data.cart_items_count;
 
                     // Si el elemento fue eliminado
                     if (data.removed) {
@@ -119,8 +129,15 @@ document.addEventListener('DOMContentLoaded', function() {
 
                     // Si el carrito está vacío después de eliminar todo
                     if (data.cart_items_count === 0) {
-                        document.getElementById('cart-items').innerHTML = '<div class="alert alert-info">Tu carrito está vacío</div>';
+                        const clearBtn = document.getElementById('clear-cart');
+                        if (clearBtn) clearBtn.disabled = true;
+                        
                         document.getElementById('checkout-btn').classList.add('disabled');
+                        
+                        // Recargar para mostrar la vista de carrito vacío completa
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 500);
                     }
                 }
             })

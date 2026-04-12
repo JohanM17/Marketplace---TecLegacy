@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; line-height: 1.6; color: #333; }
+        .container { width: 100%; max-width: 600px; margin: 0 auto; border: 1px solid #eee; border-radius: 10px; overflow: hidden; }
+        .header { background-color: #0d6efd; color: white; padding: 20px; text-align: center; }
+        .content { padding: 30px; }
+        .footer { background-color: #f8f9fa; padding: 20px; text-align: center; font-size: 12px; color: #777; }
+        .order-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+        .order-table th, .order-table td { border-bottom: 1px solid #eee; padding: 10px; text-align: left; }
+        .total-row { font-weight: bold; font-size: 18px; color: #0d6efd; }
+        .badge { background: #e7f1ff; color: #0d6efd; padding: 5px 10px; border-radius: 5px; font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>¡Gracias por tu compra!</h1>
+            <p>Pedido #{{ order.id }}</p>
+        </div>
+        <div class="content">
+            <p>Hola <strong>{{ order.first_name }}</strong>,</p>
+            <p>Estamos felices de confirmarte que hemos recibido tu pago correctamente. Aquí tienes los detalles de tu pedido en <strong>TecLegacy</strong>:</p>
+            
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cant.</th>
+                        <th>Precio</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product.name }}</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>${{ item.get_cost }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <div style="text-align: right;">
+                <p class="total-row">Total: ${{ order.total_paid }}</p>
+            </div>
+
+            <p><span class="badge">Estado: Procesando</span></p>
+            
+            <p>Tu dirección de envío:<br>
+            {{ order.address }}<br>
+            {{ order.city }}, {{ order.country }}</p>
+            
+            <p>Pronto recibirás un nuevo correo cuando tu pedido haya sido enviado.</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024 TecLegacy - La mejor tecnología a tu alcance.</p>
+        </div>
+    </div>
+</body>
+</html>
