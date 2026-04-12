@@ -111,9 +111,16 @@
                             </div>
                             <div class="form-check">
                                 <input id="paypal" name="payment_method" type="radio" class="form-check-input" value="paypal" required>
-                                <label class="form-check-label" for="paypal">
-                                    <i class="fab fa-paypal me-2"></i>PayPal
+                                <label class="form-check-label d-flex justify-content-between align-items-center w-100" for="paypal">
+                                    <span><i class="fab fa-paypal me-2"></i>PayPal</span>
+                                    <span class="badge bg-secondary opacity-75">Muy pronto</span>
                                 </label>
+                            </div>
+                        </div>
+
+                        <div id="paypal-warning" class="col-12 d-none">
+                            <div class="alert alert-info border-0 bg-info bg-opacity-10 text-info small mb-0">
+                                <i class="fas fa-info-circle me-2"></i>PayPal estará disponible próximamente. Por ahora, por favor usa <strong>Tarjeta de Crédito / Débito</strong>.
                             </div>
                         </div>
 
@@ -191,11 +198,12 @@
         const submitBtn = document.getElementById('btn-submit-order');
         const inputs = form.querySelectorAll('input[required], select[required]');
 
+        const paypalWarning = document.getElementById('paypal-warning');
+
         function validateForm() {
             let allFilled = true;
             inputs.forEach(input => {
                 if (input.type === 'radio') {
-                    // Para radios, verificamos si alguno del grupo está marcado
                     const name = input.getAttribute('name');
                     if (!form.querySelector(`input[name="${name}"]:checked`)) {
                         allFilled = false;
@@ -205,12 +213,19 @@
                 }
             });
             
-            // Verificamos la validez de HTML5 (email válido, etc.)
+            // Lógica específica para PayPal
+            const selectedPayment = form.querySelector('input[name="payment_method"]:checked');
+            const isPayPal = selectedPayment && selectedPayment.value === 'paypal';
+            
+            if (isPayPal) {
+                paypalWarning.classList.remove('d-none');
+            } else {
+                paypalWarning.classList.add('d-none');
+            }
+            
             const isFormValid = form.checkValidity();
+            submitBtn.disabled = !(allFilled && isFormValid && !isPayPal);
             
-            submitBtn.disabled = !(allFilled && isFormValid);
-            
-            // Efecto visual opcional
             if (!submitBtn.disabled) {
                 submitBtn.classList.remove('btn-secondary');
                 submitBtn.classList.add('btn-primary');
