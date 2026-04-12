@@ -135,7 +135,7 @@ def update_cart(request):
                     'success': True,
                     'removed': True,
                     'cart_total': str(cart_item.cart.get_total_price()),
-                    'cart_items_count': cart_item.cart.get_total_items()
+                    'cart_items_count': cart_item.cart.items.count()
                 })
         elif action == 'remove':
             cart_item.delete()
@@ -143,7 +143,7 @@ def update_cart(request):
                 'success': True,
                 'removed': True,
                 'cart_total': str(cart_item.cart.get_total_price()),
-                'cart_items_count': cart_item.cart.get_total_items()
+                'cart_items_count': cart_item.cart.items.count()
             })
 
         cart_item.save()
@@ -153,7 +153,7 @@ def update_cart(request):
             'item_total': str(cart_item.get_cost()),
             'quantity': cart_item.quantity,
             'cart_total': str(cart_item.cart.get_total_price()),
-            'cart_items_count': cart_item.cart.get_total_items()
+            'cart_items_count': cart_item.cart.items.count()
         })
 
     return JsonResponse({'success': False})

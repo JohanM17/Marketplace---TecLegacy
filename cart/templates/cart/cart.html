@@ -13,7 +13,7 @@
     <div class="col-md-8">
         <div class="card mb-4">
             <div class="card-header">
-                <h5 class="mb-0">Items en tu carrito ({{ cart_items.count }})</h5>
+                <h5 class="mb-0">Items en tu carrito (<span id="cart-page-count">{{ cart_items.count }}</span>)</h5>
             </div>
             <div class="card-body">
                 <div id="cart-items">
@@ -65,7 +65,7 @@
             <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary">
                 <i class="fas fa-arrow-left me-2"></i>Seguir Comprando
             </a>
-            <button class="btn btn-danger" id="clear-cart">
+            <button class="btn btn-danger" id="clear-cart" {% if not cart_items %}disabled{% endif %}>
                 <i class="fas fa-trash me-2"></i>Vaciar Carrito
             </button>
         </div>
