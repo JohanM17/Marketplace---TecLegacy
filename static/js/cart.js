@@ -62,6 +62,10 @@ document.addEventListener('DOMContentLoaded', function() {
                         duration: 3500,
                         gravity: "top",
                         position: "right",
+                        offset: {
+                            x: 20, // horizontal axis
+                            y: 80  // vertical axis (debajo del navbar)
+                        },
                         backgroundColor: toastColor,
                         stopOnFocus: true,
                     }).showToast();
