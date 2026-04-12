@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Detalle del Pedido #{{ order.id }} - TecLegacy{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Navegación -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'users:order_history' %}" class="text-decoration-none">Mis Pedidos</a></li>
+            <li class="breadcrumb-item active text-light" aria-current="page">Pedido #{{ order.id }}</li>
+        </ol>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Columna Principal: Productos -->
+        <div class="col-lg-8">
+            <div class="card bg-dark border-secondary shadow-sm mb-4">
+                <div class="card-header border-bottom border-secondary p-4 d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0 text-white"><i class="fas fa-shopping-basket me-2 text-primary"></i>Productos del Pedido</h5>
+                    <span class="badge bg-primary px-3 py-2 rounded-pill">{{ order.items.count }} ítems</span>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover mb-0">
+                            <thead class="bg-secondary bg-opacity-10">
+                                <tr>
+                                    <th class="ps-4 py-3 border-0">Producto</th>
+                                    <th class="py-3 border-0">Cantidad</th>
+                                    <th class="pe-4 py-3 border-0 text-end">Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody class="border-top-0">
+                                {% for item in order.items.all %}
+                                <tr>
+                                    <td class="ps-4 py-4">
+                                        <div class="d-flex align-items-center">
+                                            {% if item.product.image %}
+                                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="rounded me-3" style="width: 50px; height: 50px; object-fit: cover;">
+                                            {% else %}
+                                                <div class="bg-secondary rounded me-3 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                    <i class="fas fa-box text-light"></i>
+                                                </div>
+                                            {% endif %}
+                                            <div>
+                                                <h6 class="mb-0 text-white">{{ item.product.name }}</h6>
+                                                <small class="text-muted">{{ item.price|cop_format }} c/u</small>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 align-middle">
+                                        <span class="badge bg-dark border border-secondary px-3 py-2">{{ item.quantity }}</span>
+                                    </td>
+                                    <td class="pe-4 py-4 align-middle text-end text-white fw-bold">
+                                        {{ item.get_cost|cop_format }}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer bg-dark border-top border-secondary p-4">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="text-white fs-5 fw-bold">Total del Pedido</span>
+                        <span class="text-white fs-3 fw-black">{{ order.total_paid|cop_format }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna Lateral: Info de Envío y Pago -->
+        <div class="col-lg-4">
+            <!-- Estado del Pedido -->
+            <div class="card bg-dark border-secondary shadow-sm mb-4">
+                <div class="card-body p-4 text-center">
+                    <p class="text-muted small text-uppercase fw-bold mb-3 ls-1">Estado de la Orden</p>
+                    {% if order.status == 'entregado' %}
+                        <div class="text-success mb-3"><i class="fas fa-check-circle fa-4x"></i></div>
+                        <h4 class="text-white">Pedido Entregado</h4>
+                    {% elif order.status == 'enviado' %}
+                        <div class="text-info mb-3"><i class="fas fa-truck fa-4x"></i></div>
+                        <h4 class="text-white">En Camino</h4>
+                    {% elif order.status == 'cancelado' %}
+                        <div class="text-danger mb-3"><i class="fas fa-times-circle fa-4x"></i></div>
+                        <h4 class="text-white">Pedido Cancelado</h4>
+                    {% else %}
+                        <div class="text-warning mb-3"><i class="fas fa-clock fa-4x spin-slow"></i></div>
+                        <h4 class="text-white">{{ order.get_status_display }}</h4>
+                    {% endif %}
+                    <p class="text-muted small mt-3">Actualizado el: {{ order.updated_at|date:"d M Y" }}</p>
+                </div>
+            </div>
+
+            <!-- Detalles de Entrega -->
+            <div class="card bg-dark border-secondary shadow-sm mb-4">
+                <div class="card-body p-4">
+                    <h5 class="text-white mb-4 fs-6 text-uppercase fw-bold ls-1 border-bottom border-secondary pb-2">Datos de Entrega</h5>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Cliente</small>
+                        <span class="text-light">{{ order.first_name }} {{ order.last_name }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Dirección</small>
+                        <span class="text-light">{{ order.address }}</span>
+                    </div>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Ciudad y País</small>
+                        <span class="text-light">{{ order.city }}, {{ order.country }}</span>
+                    </div>
+                    <div class="mb-0">
+                        <small class="text-muted d-block">Teléfono</small>
+                        <span class="text-light">{{ order.phone }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info de Pago -->
+            <div class="card bg-dark border-secondary shadow-sm">
+                <div class="card-body p-4">
+                    <h5 class="text-white mb-4 fs-6 text-uppercase fw-bold ls-1 border-bottom border-secondary pb-2">Información del Pago</h5>
+                    <div class="mb-3">
+                        <small class="text-muted d-block">Método</small>
+                        <span class="text-light"><i class="fas fa-credit-card me-2 text-primary"></i> {{ order.get_payment_method_display }}</span>
+                    </div>
+                    <div class="mb-0">
+                        <small class="text-muted d-block">Referencia</small>
+                        <span class="badge bg-light bg-opacity-10 text-white font-monospace">{{ order.payment_reference|default:"Sin referencia" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .ls-1 { letter-spacing: 1px; }
+    .fw-black { font-weight: 900; }
+    .spin-slow { animation: spin 8s linear infinite; }
+    @keyframes spin { 100% { transform:rotate(360deg); } }
+    .card { border-radius: 15px; }
+</style>
+{% endblock %}

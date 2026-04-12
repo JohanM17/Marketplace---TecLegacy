@@ -1,0 +1,102 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+
+{% block title %}Mis Pedidos - TecLegacy{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <!-- Breadcrumb o Título -->
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h1 class="text-light fw-bold mb-0">Mis Pedidos</h1>
+            <p class="text-muted">Historial de compras y estado de envíos</p>
+        </div>
+        <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-shopping-bag me-2"></i>Seguir Comprando
+        </a>
+    </div>
+
+    {% if orders %}
+    <div class="row g-4">
+        {% for order in orders %}
+        <div class="col-12">
+            <!-- Tarjeta de Pedido Estilo Premium -->
+            <div class="card bg-dark border-secondary shadow-sm hover-shadow transition-all overflow-hidden" style="border-radius: 15px;">
+                <div class="card-body p-4">
+                    <div class="row align-items-center">
+                        <!-- Info Principal -->
+                        <div class="col-md-3">
+                            <span class="text-primary small text-uppercase fw-bold ls-1">Orden Registrada</span>
+                            <h4 class="text-white mb-1">Pedido #{{ order.id }}</h4>
+                            <p class="text-muted small mb-0"><i class="far fa-calendar-alt me-1"></i> {{ order.created_at|date:"d M Y, h:i A" }}</p>
+                        </div>
+                        
+                        <!-- Productos Resumen -->
+                        <div class="col-md-3">
+                            <p class="text-muted mb-0 small text-uppercase fw-bold">Productos</p>
+                            <p class="text-white mb-0 fs-5">{{ order.items.count }} artículo(s)</p>
+                        </div>
+
+                        <!-- Total -->
+                        <div class="col-md-2">
+                            <p class="text-muted mb-0 small text-uppercase fw-bold">Total Pagado</p>
+                            <p class="text-white fw-bold fs-5 mb-0">{{ order.total_paid|cop_format }}</p>
+                        </div>
+
+                        <!-- Estado -->
+                        <div class="col-md-2">
+                            <p class="text-muted mb-2 small text-uppercase fw-bold">Estado</p>
+                            {% if order.status == 'entregado' %}
+                                <span class="badge bg-success px-3 py-2 rounded-pill"><i class="fas fa-check-circle me-1"></i> Entregado</span>
+                            {% elif order.status == 'enviado' %}
+                                <span class="badge bg-info text-dark px-3 py-2 rounded-pill"><i class="fas fa-truck me-1"></i> Enviado</span>
+                            {% elif order.status == 'cancelado' %}
+                                <span class="badge bg-danger px-3 py-2 rounded-pill">Cancelado</span>
+                            {% else %}
+                                <span class="badge bg-warning text-dark px-3 py-2 rounded-pill"><i class="fas fa-clock me-1"></i> {{ order.get_status_display }}</span>
+                            {% endif %}
+                        </div>
+
+                        <!-- Acción -->
+                        <div class="col-md-2 text-md-end mt-3 mt-md-0">
+                            <a href="{% url 'users:order_detail' order.id %}" class="btn btn-primary rounded-pill px-4 btn-hover-glow">
+                                Ver Detalle <i class="fas fa-chevron-right ms-1 small"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Estado Vacío -->
+    <div class="text-center py-5">
+        <div class="bg-dark d-inline-block p-4 rounded-circle mb-4 border border-secondary" style="background: linear-gradient(145deg, #1a1e21, #212529);">
+            <i class="fas fa-box-open fa-3x text-muted"></i>
+        </div>
+        <h3 class="text-light fw-bold">Aún no tienes pedidos</h3>
+        <p class="text-muted mb-4">Parece que tu historial está vacío. ¡Es momento de estrenar la tienda!</p>
+        <a href="{% url 'products:product_list' %}" class="btn btn-primary btn-lg px-5 rounded-pill shadow">
+            Empezar a Comprar
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .ls-1 { letter-spacing: 1px; }
+    .hover-shadow:hover {
+        transform: translateY(-5px);
+        border-color: #0d6efd !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.6) !important;
+    }
+    .transition-all {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .btn-hover-glow:hover {
+        box-shadow: 0 0 15px rgba(13, 110, 253, 0.5);
+    }
+    .badge { font-weight: 600; font-size: 0.85rem; }
+</style>
+{% endblock %}
