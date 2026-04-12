@@ -1,10 +1,10 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .forms import UserRegisterForm, UserUpdateForm, ProfileUpdateForm
 from django.contrib.auth.views import LoginView
 from django.contrib.auth import logout
-from cart.models import Cart
+from cart.models import Cart, Order
 
 
 class UserLoginView(LoginView):
@@ -66,6 +66,13 @@ def order_history(request):
     """Vista para mostrar el historial de pedidos del usuario."""
     orders = request.user.order_set.all().order_by('-created_at')
     return render(request, 'users/order_history.html', {'orders': orders})
+
+
+@login_required
+def order_detail(request, order_id):
+    """Vista para ver el detalle de un pedido específico."""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    return render(request, 'users/order_detail.html', {'order': order})
 
 def logout_view(request):
     # Vaciar el carrito de la cuenta antes de cerrar sesión

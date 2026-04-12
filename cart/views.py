@@ -326,3 +326,21 @@ def payment_cancel(request, order_id):
 
     messages.warning(request, 'El pago ha sido cancelado.')
     return redirect('cart:checkout')
+@login_required
+def order_list(request):
+    """Vista para listar todos los pedidos del usuario."""
+    orders = Order.objects.filter(user=request.user).order_by('-created_at')
+    context = {
+        'orders': orders
+    }
+    return render(request, 'cart/order_list.html', context)
+
+
+@login_required
+def order_detail(request, order_id):
+    """Vista para ver el detalle de un pedido específico."""
+    order = get_object_or_404(Order, id=order_id, user=request.user)
+    context = {
+        'order': order
+    }
+    return render(request, 'cart/order_detail.html', context)
