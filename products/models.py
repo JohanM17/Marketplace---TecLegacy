@@ -1,5 +1,6 @@
 from django.db import models
 from django.urls import reverse
+from django.contrib.auth.models import User
 
 
 class Category(models.Model):
@@ -49,3 +50,63 @@ class Product(models.Model):
 
     def get_add_to_cart_url(self):
         return reverse('cart:add_to_cart', args=[self.id])
+
+    def can_user_review(self, user):
+        """Verifica si el usuario puede dejar una reseña (compró y no ha reseñado)."""
+        if not user.is_authenticated:
+            return False
+        
+        # 1. ¿Ya reseñó este producto?
+        already_reviewed = self.reviews.filter(user=user).exists()
+        if already_reviewed:
+            return False
+
+        # 2. ¿Lo compró y el pedido fue entregado?
+        # Accedemos a los pedidos del usuario, buscamos si algún ítem de esos pedidos es este producto
+        from cart.models import Order
+        has_purchased = Order.objects.filter(
+            user=user, 
+            status='entregado', 
+            items__product=self
+        ).exists()
+        
+        return has_purchased
+
+    @property
+    def average_rating(self):
+        """Calcula el promedio de estrellas del producto."""
+        from django.db.models import Avg
+        return self.reviews.aggregate(Avg('rating'))['rating__avg'] or 0
+
+    @property
+    def star_range(self):
+        return range(int(self.average_rating))
+
+    @property
+    def empty_star_range(self):
+        return range(5 - int(self.average_rating))
+
+
+class Review(models.Model):
+    product = models.ForeignKey(Product, related_name='reviews', on_delete=models.CASCADE)
+    user = models.ForeignKey(User, related_name='reviews', on_delete=models.CASCADE)
+    rating = models.PositiveSmallIntegerField(default=5)  # Escala de 1 a 5
+    comment = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = 'reseña'
+        verbose_name_plural = 'reseñas'
+        ordering = ['-created_at']
+        unique_together = ('product', 'user')  # Un usuario solo puede dejar una reseña por producto
+
+    def __str__(self):
+        return f'{self.user.username} - {self.product.name} ({self.rating})'
+
+    @property
+    def star_range(self):
+        return range(self.rating)
+
+    @property
+    def empty_star_range(self):
+        return range(5 - self.rating)

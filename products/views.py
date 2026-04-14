@@ -1,8 +1,9 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.http import JsonResponse
 from django.db import models
-from .models import Category, Product
+from .models import Category, Product, Review
 
 def index(request):
     """Vista de la página principal con productos destacados."""
@@ -57,6 +58,7 @@ def product_detail(request, category_slug, product_slug):
     context = {
         'product': product,
         'related_products': related_products,
+        'can_review': product.can_user_review(request.user)
     }
     return render(request, 'products/product_detail.html', context)
 
@@ -105,6 +107,43 @@ def search_autocomplete(request):
         })
         
     return JsonResponse({'results': results})
+
+
+@login_required
+def add_review(request, product_id):
+    """Procesa el envío de una nueva reseña vía AJAX."""
+    if request.method == 'POST':
+        product = get_object_or_404(Product, id=product_id)
+        
+        # Verificación extra de seguridad en el servidor
+        if not product.can_user_review(request.user):
+            return JsonResponse({
+                'success': False, 
+                'message': 'No cumples los requisitos para reseñar este producto.'
+            })
+            
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+        
+        if rating and comment:
+            try:
+                Review.objects.create(
+                    product=product,
+                    user=request.user,
+                    rating=int(rating),
+                    comment=comment
+                )
+                return JsonResponse({
+                    'success': True, 
+                    'message': '¡Tu reseña ha sido publicada con éxito!'
+                })
+            except Exception as e:
+                return JsonResponse({
+                    'success': False, 
+                    'message': 'Hubo un error al guardar tu reseña.'
+                })
+                
+    return JsonResponse({'success': False, 'message': 'Petición no válida.'})
 
 
 def error_404(request, exception):

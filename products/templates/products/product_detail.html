@@ -30,6 +30,19 @@
     <!-- Información del producto -->
     <div class="col-md-6">
         <h1 class="product-title text-light">{{ product.name }}</h1>
+        
+        <!-- Estrellas y Promedio arriba -->
+        <div class="mb-3">
+            <span class="text-warning">
+                {% for i in product.star_range %}
+                    <i class="fas fa-star"></i>
+                {% endfor %}
+                {% for i in product.empty_star_range %}
+                    <i class="far fa-star"></i>
+                {% endfor %}
+            </span>
+            <span class="text-muted ms-2">({{ product.average_rating|floatformat:1 }})</span>
+        </div>
 
         <div class="product-price my-3">
             <span class="h2 text-light">{{ product.price|cop_format }}</span>
@@ -118,6 +131,106 @@
     {% endfor %}
 </div>
 {% endif %}
+
+<!-- SECCIÓN DE RESEÑAS -->
+<div class="row mt-5 pt-5 border-top border-secondary">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="text-light">Reseñas de clientes</h2>
+            
+            <!-- Botón del Modal (Solo si puede reseñar) -->
+            {% if can_review %}
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#reviewModal">
+                <i class="fas fa-edit me-2"></i>Escribir una reseña
+            </button>
+            {% elif user.is_authenticated and not can_review %}
+                <span class="badge bg-secondary p-2"><i class="fas fa-info-circle me-1"></i> Solo compradores verificados pueden reseñar o ya has calificado</span>
+            {% endif %}
+        </div>
+
+        <div class="row">
+            {% if product.reviews.all %}
+                {% for review in product.reviews.all %}
+                <div class="col-md-6 mb-4">
+                    <div class="card bg-dark border-secondary h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between mb-2">
+                                <div class="text-warning">
+                                    {% for i in review.star_range %}
+                                        <i class="fas fa-star"></i>
+                                    {% endfor %}
+                                    {% for i in review.empty_star_range %}
+                                        <i class="far fa-star"></i>
+                                    {% endfor %}
+                                </div>
+                                <small class="text-muted">{{ review.created_at|date:"d M, Y" }}</small>
+                            </div>
+                            <h6 class="text-light mb-1">{{ review.user.username }} 
+                                <span class="badge bg-success-subtle text-success border border-success ms-2" style="font-size: 0.6rem;">
+                                    <i class="fas fa-check-circle me-1"></i>Compra Verificada
+                                </span>
+                            </h6>
+                            <p class="text-muted-light small mb-0">{{ review.comment }}</p>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">No hay reseñas para este producto todavía. ¡Sé el primero en calificarlo!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- MODAL PARA ESCRIBIR RESEÑA -->
+<div class="modal fade" id="reviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark border-secondary text-light">
+            <div class="modal-header border-secondary">
+                <h5 class="modal-title">Tu opinión cuenta</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="reviewForm">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label d-block text-muted small">Haz clic en las estrellas para calificar:</label>
+                        <div class="star-rating fs-3">
+                            <i class="far fa-star star-option" data-value="1"></i>
+                            <i class="far fa-star star-option" data-value="2"></i>
+                            <i class="far fa-star star-option" data-value="3"></i>
+                            <i class="far fa-star star-option" data-value="4"></i>
+                            <i class="far fa-star star-option" data-value="5"></i>
+                            <input type="hidden" name="rating" id="rating-input" value="5" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="reviewComment" class="form-label text-muted small">Tu reseña:</label>
+                        <textarea class="form-control bg-dark border-secondary text-light" id="reviewComment" name="comment" rows="4" placeholder="¿Qué te pareció el producto? Cuéntanos tu experiencia..." required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="submitReviewBtn">Publicar Reseña</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+    .star-option {
+        cursor: pointer;
+        color: #ffc107;
+        transition: transform 0.2s;
+    }
+    .star-option:hover {
+        transform: scale(1.2);
+    }
+    .text-muted-light { color: #a0a0a0; }
+</style>
 {% endblock %}
 
 {% block extra_js %}
@@ -139,6 +252,107 @@
                     } else if (action === 'decrease' && currentValue > 1) {
                         quantityInput.value = currentValue - 1;
                     }
+                });
+            });
+        }
+
+        // Lógica de estrellas en el modal
+        const stars = document.querySelectorAll('.star-option');
+        const ratingInput = document.getElementById('rating-input');
+
+        stars.forEach(star => {
+            star.addEventListener('click', function() {
+                const val = this.dataset.value;
+                ratingInput.value = val;
+                
+                // Iluminar estrellas
+                stars.forEach(s => {
+                    if (s.dataset.value <= val) {
+                        s.classList.remove('far');
+                        s.classList.add('fas');
+                    } else {
+                        s.classList.remove('fas');
+                        s.classList.add('far');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseover', function() {
+                const val = this.dataset.value;
+                stars.forEach(s => {
+                    if (s.dataset.value <= val) {
+                        s.classList.remove('far');
+                        s.classList.add('fas', 'text-warning');
+                    }
+                });
+            });
+
+            star.addEventListener('mouseout', function() {
+                const currentVal = ratingInput.value;
+                stars.forEach(s => {
+                    if (s.dataset.value > currentVal) {
+                        s.classList.remove('fas', 'text-warning');
+                        s.classList.add('far');
+                    }
+                });
+            });
+        });
+
+        // Envío de la reseña por AJAX
+        const reviewForm = document.getElementById('reviewForm');
+        if (reviewForm) {
+            reviewForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = document.getElementById('submitReviewBtn');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Publicando...';
+
+                const formData = new FormData(this);
+
+                fetch("{% url 'products:add_review' product.id %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': '{{ csrf_token }}',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Cerrar modal
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('reviewModal'));
+                        modal.hide();
+
+                        Toastify({
+                            text: data.message,
+                            duration: 3000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "linear-gradient(to right, #00b09b, #96c93d)",
+                        }).showToast();
+
+                        // Recargar brevemente después para ver la nueva reseña
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 1500);
+                    } else {
+                        Toastify({
+                            text: data.message,
+                            duration: 4000,
+                            gravity: "top",
+                            position: "right",
+                            backgroundColor: "linear-gradient(to right, #ff5f6d, #ffc371)",
+                        }).showToast();
+                        submitBtn.disabled = false;
+                        submitBtn.textContent = 'Publicar Reseña';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Publicar Reseña';
                 });
             });
         }
