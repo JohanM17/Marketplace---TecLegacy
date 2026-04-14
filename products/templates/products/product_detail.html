@@ -203,7 +203,7 @@
                             <i class="far fa-star star-option" data-value="3"></i>
                             <i class="far fa-star star-option" data-value="4"></i>
                             <i class="far fa-star star-option" data-value="5"></i>
-                            <input type="hidden" name="rating" id="rating-input" value="5" required>
+                            <input type="hidden" name="rating" id="rating-input" value="0" required>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -223,12 +223,11 @@
 <style>
     .star-option {
         cursor: pointer;
-        color: #ffc107;
         transition: transform 0.2s;
     }
-    .star-option:hover {
-        transform: scale(1.2);
-    }
+    .star-option.fas { color: #ffc107; } /* Amarilla si está llena */
+    .star-option.far { color: #6c757d; } /* Gris si está vacía */
+    .star-option:hover { transform: scale(1.2); }
     .text-muted-light { color: #a0a0a0; }
 </style>
 {% endblock %}
@@ -256,46 +255,42 @@
             });
         }
 
-        // Lógica de estrellas en el modal
-        const stars = document.querySelectorAll('.star-option');
+        // Lógica de estrellas en el modal (FIX FINAL)
+        const reviewModal = document.getElementById('reviewModal');
+        const stars = reviewModal.querySelectorAll('.star-option');
         const ratingInput = document.getElementById('rating-input');
+
+        function updateStars(val) {
+            stars.forEach(s => {
+                if (parseInt(s.dataset.value) <= parseInt(val)) {
+                    s.classList.replace('far', 'fas');
+                } else {
+                    s.classList.replace('fas', 'far');
+                }
+            });
+        }
 
         stars.forEach(star => {
             star.addEventListener('click', function() {
-                const val = this.dataset.value;
-                ratingInput.value = val;
-                
-                // Iluminar estrellas
-                stars.forEach(s => {
-                    if (s.dataset.value <= val) {
-                        s.classList.remove('far');
-                        s.classList.add('fas');
-                    } else {
-                        s.classList.remove('fas');
-                        s.classList.add('far');
-                    }
-                });
+                ratingInput.value = this.dataset.value;
+                updateStars(this.dataset.value);
             });
 
             star.addEventListener('mouseover', function() {
-                const val = this.dataset.value;
-                stars.forEach(s => {
-                    if (s.dataset.value <= val) {
-                        s.classList.remove('far');
-                        s.classList.add('fas', 'text-warning');
-                    }
-                });
+                updateStars(this.dataset.value);
             });
 
             star.addEventListener('mouseout', function() {
-                const currentVal = ratingInput.value;
-                stars.forEach(s => {
-                    if (s.dataset.value > currentVal) {
-                        s.classList.remove('fas', 'text-warning');
-                        s.classList.add('far');
-                    }
-                });
+                const val = ratingInput.value || 0;
+                updateStars(val);
             });
+        });
+
+        // Resetear al abrir el modal para que empiece en 0
+        reviewModal.addEventListener('show.bs.modal', function () {
+            ratingInput.value = 0;
+            updateStars(0);
+            reviewForm.reset();
         });
 
         // Envío de la reseña por AJAX
