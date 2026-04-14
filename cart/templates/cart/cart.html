@@ -19,41 +19,41 @@
                 <div id="cart-items">
                     {% for item in cart_items %}
                     <div id="cart-item-{{ item.id }}" class="cart-item mb-3" data-stock="{{ item.product.stock }}">
-                        <div class="row align-items-start">
-                            <div class="col-md-2">
-                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded">
+                        <div class="row align-items-center">
+                            <div class="col-4 col-md-2 mb-3 mb-md-0 mx-auto">
+                                <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid rounded shadow-sm">
                             </div>
-                            <div class="col-md-6">
-                                <h5 class="mb-1">{{ item.product.name }}</h5>
+                            <div class="col-12 col-md-6 text-center text-md-start mb-3 mb-md-0">
+                                <h5 class="mb-1 text-light">{{ item.product.name }}</h5>
                                 <p class="text-muted small mb-0">Precio unitario: {{ item.product.price|cop_format }}</p>
                             </div>
-                            <div class="col-md-4 text-end">
+                            <div class="col-12 col-md-4 text-center text-md-end">
                                 <!-- Controles de cantidad -->
-                                <div class="input-group justify-content-end mb-4">
-                                    <button type="button" class="btn btn-outline-secondary cart-item-control" 
+                                <div class="input-group justify-content-center justify-content-md-end mb-3">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary cart-item-control" 
                                             id="btn-decrease-{{ item.id }}"
                                             data-item-id="{{ item.id }}" data-action="decrease"
                                             {% if item.quantity <= 1 %}disabled{% endif %}>
-                                        <i class="fas fa-minus fa-lg"></i>
+                                        <i class="fas fa-minus"></i>
                                     </button>
-                                    <span id="item-quantity-{{ item.id }}" class="form-control text-center fs-5" style="max-width: 70px;">{{ item.quantity }}</span>
-                                    <button type="button" class="btn btn-outline-secondary cart-item-control" 
+                                    <span id="item-quantity-{{ item.id }}" class="form-control text-center bg-dark text-light border-secondary" style="max-width: 60px;">{{ item.quantity }}</span>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary cart-item-control" 
                                             id="btn-increase-{{ item.id }}"
                                             data-item-id="{{ item.id }}" data-action="increase"
                                             {% if item.quantity >= item.product.stock %}disabled{% endif %}>
-                                        <i class="fas fa-plus fa-lg"></i>
+                                        <i class="fas fa-plus"></i>
                                     </button>
                                 </div>
                                 <!-- Precio total del ítem -->
-                                <span id="item-total-{{ item.id }}" class="h5 d-block mb-4">{{ item.get_cost|cop_format }}</span>
+                                <span id="item-total-{{ item.id }}" class="h5 d-block mb-3 text-light">{{ item.get_cost|cop_format }}</span>
                                 <!-- Botón eliminar -->
-                                <button class="btn btn-outline-danger cart-item-control" data-item-id="{{ item.id }}" data-action="remove">
+                                <button class="btn btn-sm btn-outline-danger cart-item-control w-100-mobile" data-item-id="{{ item.id }}" data-action="remove">
                                     <i class="fas fa-trash me-1"></i>Quitar
                                 </button>
                             </div>
                         </div>
                         {% if not forloop.last %}
-                        <hr class="my-3">
+                        <hr class="my-4 border-secondary">
                         {% endif %}
                     </div>
                     {% endfor %}
@@ -61,13 +61,17 @@
             </div>
         </div>
 
-        <div class="d-flex justify-content-between">
-            <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary">
-                <i class="fas fa-arrow-left me-2"></i>Seguir Comprando
-            </a>
-            <button class="btn btn-danger" id="clear-cart" {% if not cart_items %}disabled{% endif %}>
-                <i class="fas fa-trash me-2"></i>Vaciar Carrito
-            </button>
+        <div class="row g-3 mb-4">
+            <div class="col-12 col-sm-6">
+                <a href="{% url 'products:product_list' %}" class="btn btn-outline-primary w-100">
+                    <i class="fas fa-arrow-left me-2"></i>Seguir Comprando
+                </a>
+            </div>
+            <div class="col-12 col-sm-6">
+                <button class="btn btn-outline-danger w-100" id="clear-cart" {% if not cart_items %}disabled{% endif %}>
+                    <i class="fas fa-trash me-2"></i>Vaciar Carrito
+                </button>
+            </div>
         </div>
     </div>
 

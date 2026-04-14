@@ -22,7 +22,7 @@
                     <span class="badge bg-primary px-3 py-2 rounded-pill">{{ order.items.count }} ítems</span>
                 </div>
                 <div class="card-body p-0">
-                    <div class="table-responsive">
+                    <div class="table-responsive d-none d-md-block">
                         <table class="table table-dark table-hover mb-0">
                             <thead class="bg-secondary bg-opacity-10">
                                 <tr>
@@ -69,6 +69,31 @@
                                 {% endfor %}
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Vista móvil (Solo visible en dispositivos pequeños) -->
+                    <div class="d-md-none">
+                        {% for item in order.items.all %}
+                        <div class="p-3 {% if not forloop.last %}border-bottom border-secondary{% endif %}">
+                            <div class="d-flex align-items-center mb-3">
+                                {% if item.product.image %}
+                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: cover;">
+                                {% endif %}
+                                <div class="flex-grow-1">
+                                    <h6 class="text-white mb-1">{{ item.product.name }}</h6>
+                                    <p class="text-muted small mb-0">{{ item.price|cop_format }} x {{ item.quantity }}</p>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-white fw-bold">{{ item.get_cost|cop_format }}</span>
+                                </div>
+                            </div>
+                            {% if order.status == 'entregado' %}
+                            <a href="{{ item.product.get_absolute_url }}?escribir_resena=1" class="btn btn-sm btn-outline-warning w-100 rounded-pill">
+                                <i class="fas fa-star me-1"></i> Calificar este producto
+                            </a>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
                     </div>
                 </div>
                 <div class="card-footer bg-dark border-top border-secondary p-4">
