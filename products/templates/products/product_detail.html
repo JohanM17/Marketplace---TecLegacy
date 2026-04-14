@@ -61,22 +61,22 @@
         {% if product.is_available %}
         <form class="add-to-cart-form mb-4">
             <div class="row g-3 align-items-center">
-                <div class="col-auto">
+                <div class="col-12 col-sm-auto text-sm-start text-center">
                     <label for="quantity-{{ product.id }}" class="col-form-label text-light">Cantidad:</label>
                 </div>
-                <div class="col-auto">
-                    <div class="input-group">
+                <div class="col-12 col-sm-auto">
+                    <div class="input-group justify-content-center">
                         <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="decrease">
                             <i class="fas fa-minus"></i>
                         </button>
-                        <input type="number" id="quantity-{{ product.id }}" class="form-control text-center" value="1" min="1" max="{{ product.stock }}">
+                        <input type="number" id="quantity-{{ product.id }}" class="form-control text-center" value="1" min="1" max="{{ product.stock }}" style="max-width: 80px;">
                         <button type="button" class="btn btn-outline-secondary quantity-btn" data-action="increase">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>
                 </div>
-                <div class="col-auto">
-                    <button type="button" class="btn btn-primary btn-lg add-to-cart-btn" data-product-id="{{ product.id }}">
+                <div class="col-12 col-md-auto">
+                    <button type="button" class="btn btn-primary btn-lg add-to-cart-btn shadow-sm w-100" data-product-id="{{ product.id }}">
                         <i class="fas fa-cart-plus me-2"></i>Añadir al Carrito
                     </button>
                 </div>
