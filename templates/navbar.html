@@ -5,12 +5,12 @@
         </a>
 
         <!-- Botones Móviles (Visibles solo en móvil fuera de la hamburguesa) -->
-        <div class="d-flex align-items-center d-lg-none ms-auto me-2">
+        <div class="d-flex align-items-center d-lg-none ms-auto me-2" style="z-index: 1060; position: relative;">
              <!-- Carrito siempre visible -->
-             <a href="{% url 'cart:cart_detail' %}" class="btn btn-link text-light position-relative p-2">
+             <a href="{% url 'cart:cart_detail' %}" class="btn btn-link text-light position-relative p-2" style="cursor: pointer;">
                 <i class="fas fa-shopping-cart fs-5"></i>
-                <span id="cart-items-count-mobile" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
-                    {{ cart_items_count|default:"0" }}
+                <span id="cart-items-count-mobile" class="live-cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size: 0.6rem;">
+                    {{ cart_items_count }}
                 </span>
             </a>
         </div>
@@ -64,8 +64,8 @@
                 <a href="{% url 'cart:cart_detail' %}" class="btn btn-outline-light position-relative me-3 d-none d-lg-block">
                     <i class="fas fa-shopping-cart"></i>
                     <span id="cart-items-count"
-                        class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
-                        {{ cart_items_count|default:"0" }}
+                        class="live-cart-count position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                        {{ cart_items_count }}
                     </span>
                 </a>
 

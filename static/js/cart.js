@@ -1,147 +1,135 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
 
-    // Función helper para formatear precios en COP
-    const formatCOP = (value) => {
-        const num = parseInt(parseFloat(value));
-        return `$ ${new Intl.NumberFormat('es-CO').format(num)} COP`;
+    // Función para formatear el precio (Moneda Colombiana)
+    const formatCOP = (val) => {
+        return `$ ${new Intl.NumberFormat('es-CO').format(parseInt(val || 0))} COP`;
     };
 
-    // Función para actualizar el estado de los botones +/- según cantidad y stock
-    const updateButtonStates = (itemId, quantity, stock) => {
-        const decreaseBtn = document.getElementById(`btn-decrease-${itemId}`);
-        const increaseBtn = document.getElementById(`btn-increase-${itemId}`);
-        if (decreaseBtn) decreaseBtn.disabled = (quantity <= 1);
-        if (increaseBtn) increaseBtn.disabled = (quantity >= stock);
+    /**
+     * SISTEMA DE TRANSMISIÓN GLOBAL (Broadcasting)
+     * Esta función "grita" a toda la página que el carrito ha cambiado.
+     */
+    const notifyCartUpdate = (count) => {
+        const event = new CustomEvent('cart:updated', { detail: { count: count } });
+        document.dispatchEvent(event);
     };
 
-    // Al cargar, inicializar estado de botones de cada ítem
-    document.querySelectorAll('.cart-item').forEach(item => {
-        const itemId = item.id.replace('cart-item-', '');
-        const stock = parseInt(item.dataset.stock);
-        const quantityEl = document.getElementById(`item-quantity-${itemId}`);
-        if (quantityEl) {
-            updateButtonStates(itemId, parseInt(quantityEl.textContent), stock);
-        }
-    });
+    /**
+     * ESCUCHADOR INTELIGENTE
+     * Todos los elementos con la clase .live-cart-count escuchan el "grito"
+     * y se actualizan a sí mismos de forma independiente.
+     */
+    document.addEventListener('cart:updated', function (e) {
+        const newCount = e.detail.count;
+        const badges = document.querySelectorAll('.live-cart-count');
 
+        badges.forEach(badge => {
+            badge.textContent = newCount;
 
-    const addToCartButtons = document.querySelectorAll('.add-to-cart-btn');
+            // Animación PREMIUM de confirmación
+            badge.style.transition = 'transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.3s';
+            badge.style.transform = 'scale(1.4)';
+            badge.style.backgroundColor = '#28a745'; // Breve destello verde de éxito
 
-    addToCartButtons.forEach(button => {
-        button.addEventListener('click', function(e) {
-            e.preventDefault();
-
-            const productId = this.dataset.productId;
-            const quantity = document.querySelector(`#quantity-${productId}`)
-                ? parseInt(document.querySelector(`#quantity-${productId}`).value)
-                : 1;
-
-            fetch(`/cart/add/${productId}/?quantity=${quantity}`, {
-                method: 'GET',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                }
-            })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Actualizar contador del carrito (Navbar y Título de página)
-                    const navbarCount = document.getElementById('cart-items-count');
-                    const pageCount = document.getElementById('cart-page-count');
-                    if (navbarCount) navbarCount.textContent = data.cart_items_count;
-                    if (pageCount) pageCount.textContent = data.cart_items_count;
-
-                    // Color del toast según si se llegó al tope
-                    const toastColor = data.capped
-                        ? "linear-gradient(to right, #e67e22, #e74c3c)"
-                        : "linear-gradient(to right, #0063e6, #e60048)";
-
-                    // Mostrar notificación
-                    Toastify({
-                        text: data.message,
-                        duration: 3500,
-                        gravity: "top",
-                        position: "right",
-                        offset: {
-                            x: 20, // horizontal axis
-                            y: 80  // vertical axis (debajo del navbar)
-                        },
-                        backgroundColor: toastColor,
-                        stopOnFocus: true,
-                    }).showToast();
-                }
-            })
-            .catch(error => console.error('Error:', error));
+            setTimeout(() => {
+                badge.style.transform = 'scale(1)';
+                badge.style.backgroundColor = '#dc3545'; // Vuelve al rojo original
+            }, 400);
         });
+
+        // Actualizar el contador de la página de carrito si existe
+        const pageCount = document.getElementById('cart-page-count');
+        if (pageCount) pageCount.textContent = newCount;
     });
 
-    // Funcionalidad para actualizar cantidades en el carrito
-    const cartItemControls = document.querySelectorAll('.cart-item-control');
+    // Función para botones +/- (Solo si estamos dentro de la página del carrito)
+    const updateButtonStates = (itemId, qty, stock) => {
+        const dBtn = document.getElementById(`btn-decrease-${itemId}`);
+        const iBtn = document.getElementById(`btn-increase-${itemId}`);
+        if (dBtn) dBtn.disabled = (qty <= 1);
+        if (iBtn) iBtn.disabled = (qty >= stock);
+    };
 
-    cartItemControls.forEach(control => {
-        control.addEventListener('click', function() {
-            const itemId = this.dataset.itemId;
-            const action = this.dataset.action;
+    // DELEGACIÓN DE EVENTOS (Captura clics en cualquier parte para mayor robustez)
+    document.addEventListener('click', function (e) {
 
-            fetch('/cart/update/', {
+        // --- CASO 1: AÑADIR AL CARRITO ---
+        const addBtn = e.target.closest('.add-to-cart-btn');
+        if (addBtn) {
+            e.preventDefault();
+            const pId = addBtn.dataset.productId;
+            const qInp = document.querySelector(`#quantity-${pId}`);
+            const qty = qInp ? parseInt(qInp.value) : 1;
+
+            fetch(`/cart/add/${pId}/?quantity=${qty}&ajax=1&_t=${new Date().getTime()}`, {
+                method: 'GET',
+                cache: 'no-store', // Fuerza al móvil a no usar datos viejos
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // NOTIFICAR EL CAMBIO A TODA LA PÁGINA
+                        notifyCartUpdate(data.cart_items_count);
+
+                        if (typeof Toastify !== 'undefined') {
+                            Toastify({
+                                text: data.message,
+                                duration: 2500,
+                                backgroundColor: data.capped ? "#ffc107" : "#0d6efd",
+                                gravity: "bottom",
+                                position: "center"
+                            }).showToast();
+                        }
+                    }
+                })
+                .catch(err => console.error("Error en AJAX:", err));
+        }
+
+        // --- CASO 2: CONTROLES DENTRO DEL CARRITO ---
+        const ctrlBtn = e.target.closest('.cart-item-control');
+        if (ctrlBtn) {
+            const iId = ctrlBtn.dataset.itemId;
+            const act = ctrlBtn.dataset.action;
+
+            fetch('/cart/update/?ajax=1', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRFToken': csrfToken
+                    'X-CSRFToken': (typeof csrfToken !== 'undefined') ? csrfToken : ''
                 },
-                body: JSON.stringify({
-                    item_id: itemId,
-                    action: action
-                })
+                body: JSON.stringify({ item_id: iId, action: act })
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    // Actualizar contador del carrito (Navbar y Título de página)
-                    const navbarCount = document.getElementById('cart-items-count');
-                    const pageCount = document.getElementById('cart-page-count');
-                    if (navbarCount) navbarCount.textContent = data.cart_items_count;
-                    if (pageCount) pageCount.textContent = data.cart_items_count;
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        // NOTIFICAR EL CAMBIO A TODA LA PÁGINA
+                        notifyCartUpdate(data.cart_items_count);
 
-                    // Si el elemento fue eliminado
-                    if (data.removed) {
-                        const cartItem = document.getElementById(`cart-item-${itemId}`);
-                        if (cartItem) {
-                            cartItem.remove();
+                        if (data.removed) {
+                            const itemRow = document.getElementById(`cart-item-${iId}`);
+                            if (itemRow) itemRow.remove();
+                        } else {
+                            const qEl = document.getElementById(`item-quantity-${iId}`);
+                            const tEl = document.getElementById(`item-total-${iId}`);
+                            if (qEl) qEl.textContent = data.quantity;
+                            if (tEl) tEl.textContent = formatCOP(data.item_total);
+
+                            const itemDiv = document.getElementById(`cart-item-${iId}`);
+                            if (itemDiv) updateButtonStates(iId, parseInt(data.quantity), parseInt(itemDiv.dataset.stock));
                         }
-                    } else {
-                        // Actualizar cantidad y total del item
-                        const newQty = parseInt(data.quantity);
-                        document.getElementById(`item-quantity-${itemId}`).textContent = newQty;
-                        document.getElementById(`item-total-${itemId}`).textContent = formatCOP(data.item_total);
 
-                        // Actualizar botones según nueva cantidad y stock del producto
-                        const cartItemEl = document.getElementById(`cart-item-${itemId}`);
-                        const stock = parseInt(cartItemEl.dataset.stock);
-                        updateButtonStates(itemId, newQty, stock);
+                        // Actualizar Totales Finales de la vista de carrito
+                        const t1 = document.getElementById('cart-total');
+                        const t2 = document.getElementById('cart-final-total');
+                        if (t1) t1.textContent = formatCOP(data.cart_total);
+                        if (t2) t2.textContent = formatCOP(data.cart_total);
+
+                        if (data.cart_items_count === 0) window.location.reload();
                     }
-
-                    // Actualizar el total del carrito
-                    document.getElementById('cart-total').textContent = formatCOP(data.cart_total);
-                    const cartFinalTotal = document.getElementById('cart-final-total');
-                    if(cartFinalTotal) cartFinalTotal.textContent = formatCOP(data.cart_total);
-
-                    // Si el carrito está vacío después de eliminar todo
-                    if (data.cart_items_count === 0) {
-                        const clearBtn = document.getElementById('clear-cart');
-                        if (clearBtn) clearBtn.disabled = true;
-                        
-                        document.getElementById('checkout-btn').classList.add('disabled');
-                        
-                        // Recargar para mostrar la vista de carrito vacío completa
-                        setTimeout(() => {
-                            window.location.reload();
-                        }, 500);
-                    }
-                }
-            })
-            .catch(error => console.error('Error:', error));
-        });
+                })
+                .catch(err => console.error("Error al actualizar:", err));
+        }
     });
 });
