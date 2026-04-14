@@ -243,6 +243,26 @@
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
+        // DETECTOR DE RESEÑA AUTOMÁTICA
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('escribir_resena') === '1') {
+            const canReview = "{{ can_review }}" === "True";
+            if (canReview) {
+                // Abrir modal automáticamente
+                const reviewModal = new bootstrap.Modal(document.getElementById('reviewModal'));
+                reviewModal.show();
+            } else {
+                // Si no puede reseñar (ya lo hizo), le avisamos
+                Toastify({
+                    text: "Ya has dejado una reseña para este producto. ¡Gracias por tu apoyo!",
+                    duration: 5000,
+                    gravity: "top",
+                    position: "center",
+                    backgroundColor: "linear-gradient(to right, #6c757d, #495057)",
+                }).showToast();
+            }
+        }
+
         // Controles de cantidad
         const quantityInput = document.getElementById('quantity-{{ product.id }}');
         const quantityBtns = document.querySelectorAll('.quantity-btn');

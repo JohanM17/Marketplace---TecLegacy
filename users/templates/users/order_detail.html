@@ -28,7 +28,10 @@
                                 <tr>
                                     <th class="ps-4 py-3 border-0">Producto</th>
                                     <th class="py-3 border-0">Cantidad</th>
-                                    <th class="pe-4 py-3 border-0 text-end">Subtotal</th>
+                                    <th class="py-3 border-0 text-end">Subtotal</th>
+                                    {% if order.status == 'entregado' %}
+                                    <th class="pe-4 py-3 border-0 text-center">Calificar</th>
+                                    {% endif %}
                                 </tr>
                             </thead>
                             <tbody class="border-top-0">
@@ -52,9 +55,16 @@
                                     <td class="py-4 align-middle">
                                         <span class="badge bg-dark border border-secondary px-3 py-2">{{ item.quantity }}</span>
                                     </td>
-                                    <td class="pe-4 py-4 align-middle text-end text-white fw-bold">
+                                    <td class="py-4 align-middle text-end text-white fw-bold">
                                         {{ item.get_cost|cop_format }}
                                     </td>
+                                    {% if order.status == 'entregado' %}
+                                    <td class="pe-4 py-4 align-middle text-center">
+                                        <a href="{{ item.product.get_absolute_url }}?escribir_resena=1" class="btn btn-sm btn-outline-warning rounded-pill">
+                                            <i class="fas fa-star me-1"></i> Calificar
+                                        </a>
+                                    </td>
+                                    {% endif %}
                                 </tr>
                                 {% endfor %}
                             </tbody>
