@@ -123,7 +123,20 @@ def add_review(request, product_id):
             })
             
         rating = request.POST.get('rating')
-        comment = request.POST.get('comment')
+        comment = request.POST.get('comment', '').strip()
+        
+        # Validación de longitud
+        if len(comment) < 100:
+            return JsonResponse({
+                'success': False, 
+                'message': f'Tu reseña es muy corta ({len(comment)} caracteres). Por favor, escribe al menos 100 caracteres para ayudar a otros compradores.'
+            })
+        
+        if len(comment) > 3000:
+            return JsonResponse({
+                'success': False, 
+                'message': 'Tu reseña es demasiado larga. El máximo son 3000 caracteres.'
+            })
         
         if rating and comment:
             try:

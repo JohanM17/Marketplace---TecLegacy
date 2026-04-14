@@ -33,7 +33,8 @@
         
         <!-- Estrellas y Promedio arriba -->
         <div class="mb-3">
-            <span class="text-warning">
+            <span class="text-warning {% if can_review %}cursor-pointer{% endif %}" 
+                  {% if can_review %}data-bs-toggle="modal" data-bs-target="#reviewModal" title="¡Haz clic para reseñar!"{% endif %}>
                 {% for i in product.star_range %}
                     <i class="fas fa-star"></i>
                 {% endfor %}
@@ -207,8 +208,14 @@
                         </div>
                     </div>
                     <div class="mb-3">
-                        <label for="reviewComment" class="form-label text-muted small">Tu reseña:</label>
-                        <textarea class="form-control bg-dark border-secondary text-light" id="reviewComment" name="comment" rows="4" placeholder="¿Qué te pareció el producto? Cuéntanos tu experiencia..." required></textarea>
+                        <label for="reviewComment" class="form-label text-muted small d-flex justify-content-between">
+                            Tu reseña:
+                            <span id="charCount" class="text-info">0 / 3000</span>
+                        </label>
+                        <textarea class="form-control bg-dark border-secondary text-light" id="reviewComment" name="comment" rows="4" 
+                            placeholder="Mínimo 100 caracteres. ¿Qué te pareció el producto? Cuéntanos tu experiencia..." 
+                            minlength="100" maxlength="3000" required></textarea>
+                        <div class="form-text text-muted small">Mínimo 100 caracteres para una reseña de calidad.</div>
                     </div>
                 </div>
                 <div class="modal-footer border-secondary">
@@ -229,6 +236,7 @@
     .star-option.far { color: #6c757d; } /* Gris si está vacía */
     .star-option:hover { transform: scale(1.2); }
     .text-muted-light { color: #a0a0a0; }
+    .cursor-pointer { cursor: pointer; }
 </style>
 {% endblock %}
 
@@ -252,6 +260,21 @@
                         quantityInput.value = currentValue - 1;
                     }
                 });
+            });
+        }
+
+        // Contador de caracteres
+        const reviewComment = document.getElementById('reviewComment');
+        const charCount = document.getElementById('charCount');
+        if (reviewComment && charCount) {
+            reviewComment.addEventListener('input', function() {
+                const len = this.value.length;
+                charCount.textContent = `${len} / 3000`;
+                if (len < 100) {
+                    charCount.classList.replace('text-info', 'text-warning');
+                } else {
+                    charCount.classList.replace('text-warning', 'text-info');
+                }
             });
         }
 
