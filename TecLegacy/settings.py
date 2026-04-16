@@ -36,6 +36,10 @@ INSTALLED_APPS = [
     'crispy_forms',
     'crispy_bootstrap5',
 
+    # Apps de almacenamiento
+    'cloudinary_storage',
+    'cloudinary',
+
     # Apps del proyecto
     'users',
     'products',
@@ -101,7 +105,7 @@ TEMPLATES = [
 # Configuración WSGI
 WSGI_APPLICATION = 'TecLegacy.wsgi.application'
 
-# Configuración de base de datos (usa variables de entorno)
+# Configuración de base de datos
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
@@ -115,6 +119,11 @@ DATABASES = {
         }
     }
 }
+
+# Si existe una DATABASE_URL (en la nube), la usamos automáticamente
+db_from_env = dj_database_url.config(conn_max_age=600)
+if db_from_env:
+    DATABASES['default'] = db_from_env
 
 # Validación de contraseñas
 AUTH_PASSWORD_VALIDATORS = [
@@ -158,13 +167,24 @@ LOGIN_URL = 'users:login'  # Redirige aquí cuando se requiere login
 LOGIN_REDIRECT_URL = '/'    # Redirige aquí después de login exitoso
 LOGOUT_REDIRECT_URL = '/'   # Redirige aquí después de logout
 
-# Configuración de Whitenoise para archivos estáticos en producción
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Configuración de almacenamiento en la Nube (Cloudinary)
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET'),
+}
 
-# Configuración de correo: Consola en Desarrollo / SMTP en Producción
+# En producción, usamos Cloudinary para las fotos y WhiteNoise para el CSS/JS
+if not DEBUG:
+    DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+else:
+    STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+
 # Pasarela de Pagos
 PAYMENT_PROVIDER = 'stripe'
 
+# Configuración de correo: Consola en Desarrollo / SMTP en Producción
 if DEBUG:
     EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 else:
