@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const chatbotToggle = document.querySelector('.chatbot-toggle');
     const chatbotContainer = document.querySelector('.chatbot-container');
     const chatbotClose = document.querySelector('.chatbot-close');
@@ -7,14 +7,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const chatbotSendBtn = document.querySelector('.chatbot-input button');
 
     // Alternar visibilidad del chatbot
-    chatbotToggle.addEventListener('click', function() {
+    chatbotToggle.addEventListener('click', function () {
         chatbotContainer.classList.toggle('d-none');
-        chatbotInput.focus();
+
+        if (!chatbotContainer.classList.contains('d-none')) {
+            chatbotInput.focus();
+            // Bloquear scroll del fondo en móviles (pantallas pequeñas)
+            if (window.innerWidth <= 768) {
+                document.body.style.overflow = 'hidden';
+            }
+        } else {
+            // Restaurar scroll si se cierra minimizando
+            document.body.style.overflow = '';
+        }
     });
 
-    // Cerrar chatbot
-    chatbotClose.addEventListener('click', function() {
+    // Cerrar chatbot desde la 'X'
+    chatbotClose.addEventListener('click', function () {
         chatbotContainer.classList.add('d-none');
+        document.body.style.overflow = ''; // Restaurar scroll
     });
 
     // Mostrar indicador de escritura
@@ -50,36 +61,36 @@ document.addEventListener('DOMContentLoaded', function() {
                 query: message
             })
         })
-        .then(response => response.json())
-        .then(data => {
-            // Eliminar indicador de escritura
-            typingIndicator.remove();
+            .then(response => response.json())
+            .then(data => {
+                // Eliminar indicador de escritura
+                typingIndicator.remove();
 
-            if (data.success) {
-                // Añadir la respuesta del chatbot
-                appendMessage('bot', data.response);
+                if (data.success) {
+                    // Añadir la respuesta del chatbot
+                    appendMessage('bot', data.response);
 
-                // Hacer los enlaces clicables
-                const links = chatbotMessages.querySelectorAll('.bot a');
-                links.forEach(link => {
-                    link.addEventListener('click', function(e) {
-                        // Opcional: cerrar el chatbot al hacer clic en un enlace
-                        // chatbotContainer.classList.add('d-none');
+                    // Hacer los enlaces clicables
+                    const links = chatbotMessages.querySelectorAll('.bot a');
+                    links.forEach(link => {
+                        link.addEventListener('click', function (e) {
+                            // Opcional: cerrar el chatbot al hacer clic en un enlace
+                            // chatbotContainer.classList.add('d-none');
+                        });
                     });
-                });
-            } else {
-                appendMessage('bot', 'Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.');
-            }
+                } else {
+                    appendMessage('bot', 'Lo siento, ha ocurrido un error al procesar tu solicitud. Por favor, inténtalo de nuevo más tarde.');
+                }
 
-            // Scroll al final de los mensajes
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            typingIndicator.remove();
-            appendMessage('bot', 'Lo siento, ha ocurrido un error de conexión. Por favor, verifica tu internet o inténtalo más tarde.');
-            chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
-        });
+                // Scroll al final de los mensajes
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                typingIndicator.remove();
+                appendMessage('bot', 'Lo siento, ha ocurrido un error de conexión. Por favor, verifica tu internet o inténtalo más tarde.');
+                chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+            });
     }
 
     // Añadir mensaje a la interfaz
@@ -93,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Eventos para enviar mensajes
     chatbotSendBtn.addEventListener('click', sendMessage);
-    chatbotInput.addEventListener('keypress', function(e) {
+    chatbotInput.addEventListener('keypress', function (e) {
         if (e.key === 'Enter') {
             sendMessage();
         }
