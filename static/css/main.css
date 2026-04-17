@@ -348,3 +348,12 @@ body {
     justify-content: space-between;
     align-items: center;
 }
+
+/* Scroll Lock para Chatbot en Móviles */
+html.scroll-locked,
+body.scroll-locked {
+    overflow: hidden;
+    height: 100vh;
+    touch-action: none;
+    width: 100%;
+}
